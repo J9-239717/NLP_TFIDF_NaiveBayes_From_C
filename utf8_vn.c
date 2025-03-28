@@ -34,6 +34,11 @@ char covert_to_eng(const char* str){
     char utf8_char[4] = {0};
     int char_len = 1;
 
+    // check first char is english
+    if ((*str & 0x80) == 0) {
+        return *str; // English character
+    }
+
     // Check if it's a multi-byte UTF-8 character
     if ((*str & 0xE0) == 0xC0) char_len = 2; // 2-byte character
     else if ((*str & 0xF0) == 0xE0) char_len = 3; // 3-byte character

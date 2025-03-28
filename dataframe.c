@@ -1,7 +1,106 @@
 #include "dataframe.h"
 
-char punctuation[] = "!\"#$%&'()*+,-./:;<=>?@[\\]^_`{|}~";
+// linear search stop word
+int is_stop_word(char* str, char** stopword,int size){
+    if(!str || !stopword) return 0;
+    for(int i = 0; i < size; i++){
+        if(memcmp(str, stopword[i],strlen(stopword[i])) == 0){
+            return 1;
+        }
+    }
+    return 0;
+}
 
+char* remove_stop_word(char* str, char** stopword,int size_stopword){
+    if(!str || !stopword) return NULL;
+    char *token,*saveptr;
+    char* rt = (char*)malloc(sizeof(char) * (strlen(str) + 1));
+    if(!rt){
+        fprintf(stderr, "Memory allocation failed\n");
+        return NULL;
+    }
+    rt[0] = '\0';
+    token = strtok_r(str, " ", &saveptr);
+    while(token != NULL){
+        if(!is_stop_word(token, stopword, size_stopword)){
+            strcat(rt, token);
+            strcat(rt, " ");
+        }
+        token = strtok_r(NULL, " ", &saveptr);
+    }
+
+    if(strlen(rt) > 0){
+        rt[strlen(rt) - 1] = '\0'; // Remove trailing space
+    }
+
+    return rt;
+}
+
+void free_stop_word(char** stopword,int size){
+    if(!stopword) return;
+    for(int i = 0; i < size; i++){
+        free(stopword[i]);
+    }
+    free(stopword);
+}
+
+// laod stop word from file
+char** load_stop_word(char* filename,int *save_size){
+    FILE* file = fopen(filename, "r");
+    if(!file){
+        fprintf(stderr, "Cannot open file %s\n", filename);
+        return NULL;
+    }
+    int size = 0;
+    char buffer[1024];
+    // get size of stop word
+    fgets(buffer, 1024, file);
+    buffer[strcspn(buffer, "\n\r")] = '\0';
+    size = atoi(buffer);
+    if(size <= 0){
+        fprintf(stderr, "Invalid size of stop word\n");
+        fclose(file);
+        return NULL;
+    }
+    if(save_size) *save_size = size;
+    char** stopword = (char**)malloc(sizeof(char*) * size);
+    if(!stopword){
+        fprintf(stderr, "Memory allocation failed\n");
+        fclose(file);
+        return NULL;
+    }
+
+    // read stop word
+    for(int i = 0; i < size; i++){
+        if(fgets(buffer, 1024, file) == NULL){
+            fprintf(stderr, "Error reading stop word\n");
+            free_stop_word(stopword, size);
+            fclose(file);
+            return NULL;
+        }
+        buffer[strcspn(buffer, "\n\r")] = '\0';
+        stopword[i] = strdup(buffer);
+    }
+    fclose(file);
+    return stopword;
+}
+
+int remove_punctuation(char* str){
+    if (!str){
+        fprintf(stderr, "Invalid string pointer maybe your string is NULL in remove_punctuation\n");
+        return 0;
+    }
+    char *src,*dst;
+    src = dst = str;
+    while(*src){
+        if(!ispunct(*src)){
+            *dst++ = *src;
+        }
+        src++;
+    }
+    *dst = '\0';
+    return 1;
+}
 
 // create data frame and init
 data_frame* createDataFrame(){
@@ -110,7 +209,13 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
         fprintf(stderr,"Memory allocation failed\n");
         return -1;
     }
-
+    int size_stopword = 0;
+    char **stopword = load_stop_word("assets/stopword.txt", &size_stopword);
+    if (!stopword) {
+        fprintf(stderr, "Error loading stop words\n");
+        free(buffer);
+        return -1;
+    }
     int max_size = 0, count = 0;
     char c;
     while ((c = fgetc(file)) != EOF) {
@@ -122,8 +227,13 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
             char* ptr = NULL;
             char* text = parseString(buffer, ",", &ptr);
             removeChar(ptr, ',');
+            if(!remove_punctuation(text)){
+                fprintf(stderr, "Error removing punctuation\n");
+                free(buffer);
+                return -1;
+            }
             char* label = parseString(ptr, ",", &ptr);
-            df->data[df->size].text = strdup(text);
+            df->data[df->size].text = remove_stop_word(text, stopword, size_stopword);
             df->data[df->size].label = strdup(label);
             df->data[df->size].count_word = 0;
             df->size++;
@@ -160,6 +270,7 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
     
 
     free(buffer);
+    free_stop_word(stopword, size_stopword);
     return max_size;
 }
 

@@ -26,5 +26,8 @@ int readFiletoDataFrame(FILE* file, data_frame* data_frame,int line);
 void showDataFrame(data_frame* df);
 void freeDataFrame(data_frame* df);
 data_frame* createDataFrame();
+char* remove_stop_word(char* str, char** stopword,int size);
+char** load_stop_word(char* filename,int *save_size);
+int remove_punctuation(char* str);
 
 #endif

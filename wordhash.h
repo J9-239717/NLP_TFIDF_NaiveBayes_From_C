@@ -2,6 +2,8 @@
 #define _WORDHASH_H
 
 #include "dataframe.h"
+#include "import.h"
+#include "utf8_vn.h"
 
 typedef struct _word_node{
     char* word;

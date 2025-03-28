@@ -15,6 +15,7 @@ int main(int argc, char* argv[]){
     data_frame* df = createDataFrame();
     readFiletoDataFrame(file,df,line);
     test(line,df->size);
+    showDataFrame(df);
     freeDataFrame(df);
     fclose(file);
     return 0;
