@@ -52,3 +52,20 @@ char covert_to_eng(const char* str){
     }
     return base_char;
 }
+
+int isStillWordEnlishIfConver(char * str){
+    // check if is digit
+    if(isdigit(*str)){
+        return 0;
+    }
+
+    char c = covert_to_eng(str);
+    if(c == '\0'){
+        return 0; // Invalid character
+    }
+    if(isdigit(c)){
+        return 0; // Invalid character
+    }
+
+    return 1;
+}

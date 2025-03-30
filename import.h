@@ -9,6 +9,8 @@
 
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
+#define STOPWORDFILE "assets/stopword.txt"
+
 #define test(a,b) do{\
     if(a != b){\
         fprintf(stderr, "Test failed at line %d\n", __LINE__);\

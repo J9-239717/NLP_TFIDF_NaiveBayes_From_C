@@ -1,4 +1,5 @@
 #include "dataframe.h"
+#include "wordhash.h"
 
 int main(int argc, char* argv[]){
     if(argc != 2){
@@ -14,9 +15,16 @@ int main(int argc, char* argv[]){
     int line = countLine(filename);
     data_frame* df = createDataFrame();
     readFiletoDataFrame(file,df,line);
-    test(line,df->size);
-    showDataFrame(df);
+    word_hash* hash = WordHash(df);
+    printf("Word Hash Table Size %d:\n", hash->size);
+    word_hash* noise = smooth_word(hash,3);
+    printf("Word Hash Table Size %d:\n", hash->size);
+    writeWordHashToFile(hash, "assets/wordhash.txt");
+    printf("Word Noise Size %d:\n", noise->size);
+    writeWordHashToFile(noise, "assets/wordnoise.txt");
     freeDataFrame(df);
+    freeWordHash(hash);
+    freeWordHash(noise);
     fclose(file);
     return 0;
 }

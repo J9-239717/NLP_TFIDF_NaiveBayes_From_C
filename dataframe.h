@@ -3,6 +3,12 @@
 
 #include "import.h"
 
+typedef struct _label_frequency{
+    char* label;
+    int frequency;
+    struct _label_frequency* next;
+}label_frequency;
+
 typedef struct _data_frame_node{
     char* text;
     int count_word;
@@ -12,11 +18,12 @@ typedef struct _data_frame_node{
 typedef struct _data_frame{
     char** keys; // header name
     int sizeKeys; // size of header name
+    label_frequency* label_freq; // label frequency
     _data_frame_node* data; // array of data frame
     int size; // size of array of data frame
 }data_frame;
 
-extern char punctuation[]; // punctuation char
+extern char* label[]; // label name
 
 int countword(const char* str,char delim);
 void parseVocab(const char* str,int n,char* delim,char** result);

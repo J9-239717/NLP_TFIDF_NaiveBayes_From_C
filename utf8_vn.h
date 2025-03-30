@@ -15,5 +15,6 @@ extern ToneMapping viet_mapping_eng[];
 
 char get_base_telex(const char* c);
 char covert_to_eng(const char* str);
+int isStillWordEnlishIfConver(char * str);
 
 #endif
