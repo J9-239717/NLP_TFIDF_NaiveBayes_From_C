@@ -36,5 +36,7 @@ data_frame* createDataFrame();
 char* remove_stop_word(char* str, char** stopword,int size);
 char** load_stop_word(char* filename,int *save_size);
 int remove_punctuation(char* str);
+int remove_word_in_data_frame(data_frame* df, char** word,int size_word);
+int writeDataFrameToFile(data_frame* df, const char* filename);
 
 #endif

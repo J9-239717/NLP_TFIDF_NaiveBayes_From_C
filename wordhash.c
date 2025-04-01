@@ -202,8 +202,13 @@ word_hash* WordHash(data_frame* df){
         return NULL;
     }
     for(int i = 0; i < df->size; i++){
-        char* text = df->data[i].text;
-
+        char* text = strdup(df->data[i].text);
+        if(!text){
+            fprintf(stderr, "Memory allocation failed for text\n");
+            freeWordHash(hash);
+            return NULL;
+        }
+        char* save = text;
         // Process the text and add words to the hash
         char* save_ptr = NULL;
         char* token = strtok_r(text, " ", &save_ptr);
@@ -215,6 +220,7 @@ word_hash* WordHash(data_frame* df){
             push_word(hash, token);
             token = strtok_r(NULL, " ", &save_ptr);
         }
+        free(save); // Free the duplicated string
     }
     return hash;
 }
@@ -276,4 +282,30 @@ int writeWordHashToFile(word_hash* hash, const char* filename) {
     }
     fclose(file);
     return 0;
+}
+
+char** getWordFormHash(word_hash* src,int* rt_size){
+    if(!src){
+        fprintf(stderr, "Source hash table is NULL\n");
+        return NULL;
+    }
+
+    char** result = (char**)malloc(sizeof(char*) * (src->size+1));
+    if(!result){
+        fprintf(stderr, "Memory allocation failed for result\n");
+        return NULL;
+    }
+
+    int index = 0;
+    for(int i = 0; i < WORD_HASH_SIZE; i++){
+        word_node* current = src->table[i];
+        while(current){
+            result[index] = strdup(current->word);
+            index++;
+            current = current->next;
+        }
+    }
+    result[index] = NULL; // Null-terminate the array
+    *rt_size = index; // Set the size of the result array
+    return result;
 }

@@ -330,6 +330,7 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
         // process 1 line
         if (c == '\n') {
             buffer[count] = '\0';
+            buffer[strcspn(buffer, "\n\r")] = '\0';
             max_size = (count > max_size) ? count : max_size;
             char* ptr = NULL;
             // parse label first
@@ -432,13 +433,35 @@ void showDataFrame(data_frame* df){
     printf("\n");
 
     for(int i = 0; i < df->size-1; i++){
-        printf(">%s<\n",df->data[i].text);
-        printf("label: %s and Count: %d\n",df->data[i].label,df->data[i].count_word);
+        printf(">%s<",df->data[i].text);
     }
 
     printf("\n");
     // show label frequency
     showLabelFrequency(df);
+}
+
+// write data frame to file
+int writeDataFrameToFile(data_frame* df, const char* filename){
+    if(!df || !filename){
+        fprintf(stderr, "Invalid data frame or filename\n");
+        return -1;
+    }
+    FILE* file = fopen(filename, "w");
+    if(!file){
+        fprintf(stderr, "Cannot open file %s\n", filename);
+        return -1;
+    }
+    for(int i = 0; i < df->sizeKeys; i++){
+        fprintf(file, "%s <-> ", df->keys[i]);
+    }
+    fprintf(file, "\n");
+
+    for(int i = 0; i < df->size; i++){
+        fprintf(file, "< %s > is <%s>\n", df->data[i].text, df->data[i].label);
+    }
+    fclose(file);
+    return 0;
 }
 
 // free allcate
@@ -472,4 +495,71 @@ void freeDataFrame(data_frame* df){
     }
 
     free(df);
+}
+
+int is_token_in_array(char* token,char **array,int size){
+    if(!token || !array) return 0;
+    for(int i = 0; i < size; i++){
+        if(memcmp(token, array[i],strlen(array[i])) == 0){
+            return 1;
+        }
+    }
+    return 0;
+}
+
+void write_word(char* token,char* src,int* origin_index,int size){
+    if(token == NULL || src == NULL || origin_index == NULL){
+        fprintf(stderr, "Invalid token or source string\n");
+        return;
+    }
+    for(int i = 0; i < size; i++){
+        src[*origin_index] = token[i];
+        (*origin_index)++;
+    }
+    src[*origin_index] = ' ';
+    (*origin_index)++;
+}
+
+int remove_word_in_data_frame(data_frame* df, char** word,int size_word){
+    if(!df || !word) {
+        fprintf(stderr, "Invalid data frame or word\n");
+        return 0;
+    }
+    int min_len = 6;
+    for(int i = 0; i < df->size; i++){
+        char *temp = NULL,*token = NULL,*saveptr = NULL;
+        int exit_flag = 0;
+        char* text = strdup(df->data[i].text);
+        char* save = text;
+        if(!text){
+            fprintf(stderr, "Invalid text in data frame\n");
+            continue;
+        }
+        size_t len = strlen(df->data[i].text) * 2;
+        len = len < min_len ? min_len : len;
+        temp = (char*)calloc(len, sizeof(char));
+        if(!temp){
+            fprintf(stderr, "Memory allocation failed\n");
+            return 0;
+        }
+        int origin_index = 0;
+        token = strtok_r(text, " ", &saveptr);
+        while(token != NULL){
+            int flag = is_token_in_array(token, word,size_word);
+            if(!flag){
+                exit_flag = 1;
+                write_word(token, temp, &origin_index, strlen(token));
+            }
+            token = strtok_r(NULL, " ", &saveptr);
+        }
+        if (exit_flag) {
+            temp[origin_index] = '\0';
+        }
+        free(df->data[i].text);
+        df->data[i].text = strdup(temp);
+        // df->data[i].count_word = countword(temp, ' ');
+        free(temp);
+        free(save);
+    }
+    return 1;
 }

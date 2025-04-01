@@ -23,5 +23,6 @@ void printWordHash(word_hash* hash);
 void freeWordHash(word_hash* hash);
 word_hash* smooth_word(word_hash* hash,int smallest);
 int writeWordHashToFile(word_hash* hash, const char* filename);
+char** getWordFormHash(word_hash* src,int* rt_size);
 
 #endif
