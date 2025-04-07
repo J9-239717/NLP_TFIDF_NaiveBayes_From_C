@@ -33,38 +33,47 @@ int main(int argc, char* argv[]){
         return 1;
     }
     int line = countLine(filename);
+    // create data frame
+    printf("Create data frame phase\n");
     data_frame* df = createDataFrame();
     readFiletoDataFrame(file,df,line);
-    writeDataFrameToFile(df, "assets/logframe_origin.txt");
-    printf("<%s>\n", df->data[0].label);
-    word_hash* hash = WordHash(df);
-    // writeDataFrameToFile(df, "assets/logframe2.txt");
-    printf("Word Hash Table Size %d:\n", hash->size);
-    word_hash* noise = smooth_word(hash,3);
-    printf("Word Hash Table Size %d:\n", hash->size);
-    // writeWordHashToFile(hash, "assets/wordhash.txt");
-    printf("Word Noise Size %d:\n", noise->size);
-    // writeWordHashToFile(noise, "assets/wordnoise.txt");
+    fclose(file);
+
+    // get noise and delete noise in data frame
+    printf("Get noise phase\n");
+    word_hash* noise = createWordHash();
+    road_word_hash(noise, NOISEFILE);
+    char** noise_word = NULL;
     int size_noise = 0;
-    char** noise_w = getWordFormHash(noise,&size_noise);
-    //writeDataFrameToFile(df, "assets/logframe1.txt");
-    // ## TODO: delete word noise in data frame
-    // ## BUG: fix remove word in data frame
-    remove_word_in_data_frame(df, noise_w,size_noise);
-    //log_string(noise_w, noise->size, "assets/logstring.txt");
-    writeDataFrameToFile(df, "assets/logframe.txt");
+    noise_word = getWordFormHash(noise, &size_noise);
+    freeWordHash(noise);
+
+    // remove noise word in data frame
+    printf("Remove Stopword phase\n");
+    remove_word_in_data_frame(df, noise_word, size_noise);
+    freeArrayString(noise_word, size_noise);
+    //writeDataFrameToFile(df, "assets/df.txt");
+
+    // get vocab to make feature engineering
+    //word_hash* hash = WordHash(df);
+    //writeWordHashToFile(hash, "assets/vocab.txt");
+
+    // N-gram to make feature engineering
+    printf("N-Gram phase\n");
+    word_hash* ngram = WordHashWithNgram(df, 2);
+    char** ngram_word = NULL;
+    int size_ngram = 0;
+    ngram_word = getWordFormHash(ngram, &size_ngram);
+    
     // ## TODO: Try count IDF for filter noise word
-    // ## TODO: make N-gram
-    // ## TODO: add word N-gram to hash table
     // ## TODO: make spares matrix
     // ## TODO: make TF-IDF
     // ## TODO: make Naive Bayes
     // ## TODO: try predict
     // ## TODO: review accuracy
-    freeArrayString(noise_w, noise->size);
+    printf("Free phase\n");
     freeDataFrame(df);
-    freeWordHash(hash);
-    freeWordHash(noise);
-    fclose(file);
+    freeWordHash(ngram);
+    freeArrayString(ngram_word, size_ngram);
     return 0;
 }

@@ -10,7 +10,7 @@ char* label[] = {
 int is_stop_word(char* str, char** stopword,int size){
     if(!str || !stopword) return 0;
     for(int i = 0; i < size; i++){
-        if(memcmp(str, stopword[i],strlen(stopword[i])) == 0){
+        if(memcmp(str, stopword[i],strlen(stopword[i])) == 0 && strlen(stopword[i]) == strlen(str)){
             return 1;
         }
     }
@@ -498,9 +498,15 @@ void freeDataFrame(data_frame* df){
 }
 
 int is_token_in_array(char* token,char **array,int size){
-    if(!token || !array) return 0;
+    if(!token || !array){
+        fprintf(stderr, "Invalid token or array\n");
+        exit(EXIT_FAILURE);
+    }
+    size_t min_len = 3;
     for(int i = 0; i < size; i++){
-        if(memcmp(token, array[i],strlen(array[i])) == 0){
+        size_t len = strlen(array[i]);
+        len = len < min_len ? min_len : len;
+        if(memcmp(token, array[i],len) == 0){
             return 1;
         }
     }
@@ -525,6 +531,7 @@ int remove_word_in_data_frame(data_frame* df, char** word,int size_word){
         fprintf(stderr, "Invalid data frame or word\n");
         return 0;
     }
+    FILE* file = fopen("assets/debug.txt", "w");
     int min_len = 6;
     for(int i = 0; i < df->size; i++){
         char *temp = NULL,*token = NULL,*saveptr = NULL;
@@ -549,6 +556,7 @@ int remove_word_in_data_frame(data_frame* df, char** word,int size_word){
             if(!flag){
                 exit_flag = 1;
                 write_word(token, temp, &origin_index, strlen(token));
+                fprintf(file, "(%s,%d)", temp,i);
             }
             token = strtok_r(NULL, " ", &saveptr);
         }
@@ -557,9 +565,114 @@ int remove_word_in_data_frame(data_frame* df, char** word,int size_word){
         }
         free(df->data[i].text);
         df->data[i].text = strdup(temp);
-        // df->data[i].count_word = countword(temp, ' ');
+        //df->data[i].count_word = countword(temp, ' ');
         free(temp);
         free(save);
+        fprintf(file, "\n");
     }
+    fclose(file);
+    return 1;
+}
+
+int is_english_word(const char* word) {
+    if (!word) return 0;
+
+    while (*word) {
+        if (!isalpha(*word)) {
+            return 0; // Not an English word (has number, symbol, or Vietnamese char)
+        }
+        word++;
+    }
+    return 1; // All characters are English alphabet letters
+}
+
+
+int is_special_noise(char* str) {
+    // Check if token contains digits or special characters
+    while (*str) {
+        if (isdigit(*str) || ispunct(*str)) return 1;
+        if ((*str & 0x80)) return 0;  // Keep Vietnamese characters
+        str++;
+    }
+    return 0;
+}
+
+int isNumber(char* str) {
+    if (!str) return 0;
+    while (*str) {
+        if (isdigit(*str)) return 1;
+        str++;
+    }
+    return 0;
+}
+
+int remove_noise_in_dataframe(data_frame* df, word_hash* hash, int freq_threshold){
+    if (!df){
+        fprintf(stderr, "Invalid data frame\n");
+        return -1;
+    }
+    
+    // flag check if hash is exist it's mean we will check in hash frequency
+    // but it not exist we will pass
+    // nflag = 1 mean we will not check in hash
+    // nflag = 0 mean we will check in hash
+    int nflag = 0;
+    if (!hash) {
+        nflag = 1;
+    }
+
+    int stopword_size = 0;
+    char **stopwords = load_stop_word(STOPWORDFILE, &stopword_size);
+    if (!stopwords) {
+        fprintf(stderr, "Error loading stop words\n");
+        return -1;
+    }
+
+    for (int i = 0; i < df->size; i++) {
+        char *text = strdup(df->data[i].text);
+        if (!text) continue;
+
+        char buffer[2048] = "";
+        char* token;
+        char* saveptr = NULL;
+
+        token = strtok_r(text, " ", &saveptr);
+        while (token != NULL) {
+
+            if(isNumber(token)){
+                token = strtok_r(NULL, " ", &saveptr);
+                continue;
+            }
+
+            int freq_check = 0;
+            if(nflag){
+                // if hash is not exist we will not check in hash
+                // always pass
+                freq_check = 1;
+            }else{
+                int freq = getWordFreq(hash, token);
+                freq_check = freq > freq_threshold ? 1 : 0;
+            }
+            
+            
+            // Keep token if it meets these conditions
+            if (
+                freq_check && 
+                !is_stop_word(token, stopwords, stopword_size) &&
+                !is_special_noise(token)
+            ) {
+                strcat(buffer, token);
+                strcat(buffer, " ");
+            }
+            token = strtok_r(NULL, " ", &saveptr);
+        }
+
+        // Update dataframe text
+        buffer[strlen(buffer) - 1] = '\0';  // Remove trailing space
+        free(df->data[i].text);
+        df->data[i].text = strdup(buffer);
+        free(text);
+    }
+    free_stop_word(stopwords, stopword_size);
     return 1;
 }

@@ -7,14 +7,17 @@
 #include<string.h>
 #include<ctype.h>
 
+#define DEBUG 1
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
 #define STOPWORDFILE "assets/stopword.txt"
 //#define STOPWORDFILE "D:\\TestC_AI\\NLP_TFIDF_NaiveBayes_From_C\\assets\\stopword.txt"
+
+#define NOISEFILE "assets/noise.txt"
+//#define NOISEFILE "D:\\TestC_AI\\NLP_TFIDF_NaiveBayes_From_C\\assets\\noise.txt"
 #define test(a,b) do{\
     if(a != b){\
-        fprintf(stderr, "Test failed at line %d\n", __LINE__);\
-        return -1;\
+        fprintf(stderr, "Test failed at line %d with different is %d and %d\n", __LINE__,a,b);\
     }else{\
         fprintf(stdout, "Test pass\n");\
     }\

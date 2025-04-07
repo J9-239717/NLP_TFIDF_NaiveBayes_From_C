@@ -28,6 +28,7 @@ word_hash* createWordHash(){
     newHash->size = 0;
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         newHash->table[i] = NULL;
+        newHash->size_each[i] = 0;
     }
     return newHash;
 }
@@ -43,12 +44,13 @@ char getIndexHashWord(char* word){
     // key is first char
     char temp = covert_to_eng(word);
     if(temp == '\0'){
-        fprintf(stderr, "Invalid character in word: %s\n", word);
+        fprintf(stderr, "Invalid character in word: %s is \\0 in line: %d in file: %s\n", word, __LINE__, __FILE__);
         exit(EXIT_FAILURE);
     }
 
     // if is digit pass
     if(isdigit(temp)){
+        fprintf(stderr, "Invalid character in word: %s is digit in line: %d in file: %s\n", word, __LINE__, __FILE__);
         return -1; // Invalid index for digits
     }
 
@@ -69,6 +71,7 @@ word_node* isExistWordHash(word_hash* hash, char* word){
     }
     char index = getIndexHashWord(word);
     if(index == -1){
+        fprintf(stderr, "Invalid index for word: %s in line:%d from file: %s\n", word, __LINE__, __FILE__);
         exit(EXIT_FAILURE); // Invalid index
     }
 
@@ -115,6 +118,27 @@ void push_word(word_hash* dest,char* word){
         dest->table[index] = newNode;
     }
     dest->size++;
+    dest->size_each[index]++;
+}
+
+word_hash* copyWordHash(word_hash* original){
+    if(!original){
+        fprintf(stderr, "Original hash table is NULL\n");
+        return NULL;
+    }
+    word_hash* newHash = createWordHash();
+    if(!newHash){
+        fprintf(stderr, "Memory allocation failed for newHash\n");
+        return NULL;
+    }
+    for(int i = 0; i < WORD_HASH_SIZE; i++){
+        word_node* current = original->table[i];
+        while(current){
+            push_word(newHash, current->word);
+            current = current->next;
+        }
+    }
+    return newHash;
 }
 
 void freeWordHash(word_hash* hash){
@@ -162,6 +186,7 @@ word_node* pop_word(word_hash* hash, char* word){
     word_node* prev = NULL;
     while(current){
         if(memcmp(current->word, word,strlen(word)) == 0){
+            // Found the word, remove it
             if(prev){
                 // in the middle or end of the list
                 prev->next = current->next;
@@ -171,6 +196,7 @@ word_node* pop_word(word_hash* hash, char* word){
             }
             current->next = NULL; // Disconnect the node
             hash->size--;
+            hash->size_each[index]--;
             return current; // Word found and removed
         }
         prev = current;
@@ -287,13 +313,15 @@ int writeWordHashToFile(word_hash* hash, const char* filename) {
 char** getWordFormHash(word_hash* src,int* rt_size){
     if(!src){
         fprintf(stderr, "Source hash table is NULL\n");
-        return NULL;
+        exit(EXIT_FAILURE);
     }
 
     char** result = (char**)malloc(sizeof(char*) * (src->size+1));
     if(!result){
-        fprintf(stderr, "Memory allocation failed for result\n");
-        return NULL;
+        fprintf(stderr, "   Memory allocation failed for result\n");
+        exit(EXIT_FAILURE);
+    }else{
+        printf("    Memory allocation for result successful with size: %d\n", src->size+1);
     }
 
     int index = 0;
@@ -308,4 +336,98 @@ char** getWordFormHash(word_hash* src,int* rt_size){
     result[index] = NULL; // Null-terminate the array
     *rt_size = index; // Set the size of the result array
     return result;
+}
+
+int road_word_hash(word_hash* src, const char* filename){
+    if(!src || !filename){
+        fprintf(stderr, "Source hash table or filename is NULL\n");
+        return -1;
+    }
+    FILE* file = fopen(filename, "r");
+    if(!file){
+        fprintf(stderr, "Failed to open file: %s\n", filename);
+        return -1;
+    }
+    char buffer[1024];
+    while(fgets(buffer, sizeof(buffer), file)){
+        buffer[strcspn(buffer, "\n\r")] = '\0'; // Remove newline characters
+        push_word(src, buffer);
+    }
+    fclose(file);
+    return 0;
+}
+
+void push_ngram(word_hash* dest, char** tokens, int token_count, int n) {
+    if (!dest || !tokens || token_count < n) return;
+
+    char ngram[1024];
+    for (int i = 0; i <= token_count - n; i++) {
+        ngram[0] = '\0';
+        for (int j = 0; j < n; j++) {
+            strcat(ngram, tokens[i + j]);
+            if (j < n - 1) strcat(ngram, "_"); // use underscore as delimiter
+        }
+        push_word(dest, ngram);
+    }
+}
+
+word_hash* WordHashWithNgram(data_frame* df, int n) {
+    if (!df) return NULL;
+    word_hash* hash = createWordHash();
+
+    for (int i = 0; i < df->size; i++) {
+        char* text = strdup(df->data[i].text);
+        if (!text) continue;
+
+        char* save_ptr = NULL;
+        char* token = strtok_r(text, " ", &save_ptr);
+        char* tokens[1000]; // max 1000 tokens
+        int token_count = 0;
+
+        while (token) {
+            if (isStillWordEnlishIfConver(token)) {
+                tokens[token_count++] = token;
+            }
+            token = strtok_r(NULL, " ", &save_ptr);
+        }
+
+        // push unigram
+        for (int k = 0; k < token_count; k++) {
+            push_word(hash, tokens[k]);
+        }
+
+        // push n-gram (e.g., bigram or trigram)
+        if (n > 1) {
+            push_ngram(hash, tokens, token_count, n);
+        }
+
+        free(text);
+    }
+    return hash;
+}
+
+int getIndexOfWord(word_hash* hash, char* word){
+    if(!hash || !word){
+        fprintf(stderr, "Hash table or word is NULL\n");
+        return -1;
+    }
+    char index = getIndexHashWord(word);
+    if(index == -1){
+        return -1; // Invalid index
+    }
+    word_node* current = hash->table[index];
+    int i = 0;
+    int offset = 0;
+    for(int i = 0;i < index;i++){
+        offset += hash->size_each[i];
+    }
+    while(current){
+        if(memcmp(current->word, word,strlen(word)) == 0 && strlen(current->word) == strlen(word)){
+            return i + offset; // Word found at index i
+        }
+        current = current->next;
+        i++;
+    }
+    return -1; // Word not found
+
 }

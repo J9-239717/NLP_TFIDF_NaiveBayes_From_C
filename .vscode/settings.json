@@ -1,5 +1,6 @@
 {
     "files.associations": {
         "dataframe.h": "c"
-    }
+    },
+    "todo-tree.tree.showCountsInTree": true
 }

@@ -2,26 +2,8 @@
 #define _DATAFRAME_H_
 
 #include "import.h"
-
-typedef struct _label_frequency{
-    char* label;
-    int frequency;
-    struct _label_frequency* next;
-}label_frequency;
-
-typedef struct _data_frame_node{
-    char* text;
-    int count_word;
-    char* label;
-}_data_frame_node;
-
-typedef struct _data_frame{
-    char** keys; // header name
-    int sizeKeys; // size of header name
-    label_frequency* label_freq; // label frequency
-    _data_frame_node* data; // array of data frame
-    int size; // size of array of data frame
-}data_frame;
+#include "structure_data.h"
+#include "wordhash.h"
 
 extern char* label[]; // label name
 
@@ -38,5 +20,6 @@ char** load_stop_word(char* filename,int *save_size);
 int remove_punctuation(char* str);
 int remove_word_in_data_frame(data_frame* df, char** word,int size_word);
 int writeDataFrameToFile(data_frame* df, const char* filename);
+int remove_noise_in_dataframe(data_frame* df, word_hash* hash, int freq_threshold);
 
 #endif
