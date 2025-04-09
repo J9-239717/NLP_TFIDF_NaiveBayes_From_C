@@ -1,5 +1,7 @@
 #include "wordhash.h"
 
+// This function is used to create a new word_node
+// It will allocate memory for the new node and initialize it
 word_node* createNodeWord(char* word){
     word_node* newNode = (word_node*)malloc(sizeof(word_node));
     if(!newNode){
@@ -12,6 +14,7 @@ word_node* createNodeWord(char* word){
     return newNode;
 }
 
+// De allocate memory for word_node
 void freeNodeWord(word_node* node){
     if(node){
         free(node->word);
@@ -19,6 +22,7 @@ void freeNodeWord(word_node* node){
     }
 }
 
+// Create a new word_hash
 word_hash* createWordHash(){
     word_hash* newHash = (word_hash*)malloc(sizeof(word_hash));
     if(!newHash){
@@ -77,7 +81,7 @@ word_node* isExistWordHash(word_hash* hash, char* word){
 
     word_node* current = hash->table[index];
     while(current){
-        if(memcmp(current->word, word,strlen(word)) == 0){
+        if(memcmp(current->word, word,strlen(word)) == 0 && strlen(current->word) == strlen(word)){
             return current; // Word exists
         }
         current = current->next;
@@ -85,6 +89,8 @@ word_node* isExistWordHash(word_hash* hash, char* word){
     return NULL; // Word does not exist
 }
 
+// Add a word to the hash table
+// If the word already exists, increment its frequency
 void push_word(word_hash* dest,char* word){
     if(!dest){
         fprintf(stderr, "Destination hash table is NULL\n");
@@ -121,6 +127,8 @@ void push_word(word_hash* dest,char* word){
     dest->size_each[index]++;
 }
 
+// Copy the word hash table
+// Create a new hash table and copy the contents of the original
 word_hash* copyWordHash(word_hash* original){
     if(!original){
         fprintf(stderr, "Original hash table is NULL\n");
@@ -141,6 +149,7 @@ word_hash* copyWordHash(word_hash* original){
     return newHash;
 }
 
+// Free the word hash table
 void freeWordHash(word_hash* hash){
     if(!hash){
         fprintf(stderr, "Hash table is NULL\n");
@@ -163,16 +172,20 @@ void printWordHash(word_hash* hash){
         return;
     }
     printf("Word Hash Table:\n");
+    int count = 0;
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         word_node* current = hash->table[i];
         while(current){
-            printf("Word: %s, Frequency: %d\n", current->word, current->freq);
+            printf("%d.Word: %s, Frequency: %d\n",count ,current->word, current->freq);
             current = current->next;
+            count++;
         }
     }
     printf("Word Hash Table Size: %d\n", hash->size);
 }
 
+// Pop a word from the hash table
+// This function removes the word from the hash table and returns the node
 word_node* pop_word(word_hash* hash, char* word){
     if(!hash || !word){
         fprintf(stderr, "Hash table or word is NULL\n");
@@ -217,6 +230,8 @@ int getWordFreq(word_hash* hash, char* word){
     return 0; // Word not found
 }
 
+// Create a word hash from a data frame
+// This function processes the text in the data frame and adds words to the hash table
 word_hash* WordHash(data_frame* df){
     if(!df){
         fprintf(stderr, "Data frame is NULL\n");
@@ -310,6 +325,9 @@ int writeWordHashToFile(word_hash* hash, const char* filename) {
     return 0;
 }
 
+// Get the word form hash table
+// This function returns an array of words from the hash table
+// The size of the array is returned through rt_size
 char** getWordFormHash(word_hash* src,int* rt_size){
     if(!src){
         fprintf(stderr, "Source hash table is NULL\n");
@@ -338,6 +356,12 @@ char** getWordFormHash(word_hash* src,int* rt_size){
     return result;
 }
 
+// Read words from a file and add them to the hash table
+// This function reads words from the specified file and adds them to the hash table
+// exmpale file format:
+// hi
+// hello
+// world
 int road_word_hash(word_hash* src, const char* filename){
     if(!src || !filename){
         fprintf(stderr, "Source hash table or filename is NULL\n");
@@ -357,6 +381,8 @@ int road_word_hash(word_hash* src, const char* filename){
     return 0;
 }
 
+// push ngram to hash table
+// This function creates n-grams from the tokens and adds them to the hash table
 void push_ngram(word_hash* dest, char** tokens, int token_count, int n) {
     if (!dest || !tokens || token_count < n) return;
 
@@ -371,6 +397,10 @@ void push_ngram(word_hash* dest, char** tokens, int token_count, int n) {
     }
 }
 
+// Make N gram from data frame
+// n is the number of words in the n-gram
+// if n < 1, it will be unigram
+// if n > 1 it will be n-gram
 word_hash* WordHashWithNgram(data_frame* df, int n) {
     if (!df) return NULL;
     word_hash* hash = createWordHash();
@@ -406,6 +436,39 @@ word_hash* WordHashWithNgram(data_frame* df, int n) {
     return hash;
 }
 
+// like WordHashWithNgram but only for string
+word_hash* String_Ngram(char* str_org, int n){
+    char* text = strdup(str_org);
+    checkExistMemory(text);
+    word_hash* hash = createWordHash();
+    checkExistMemory(hash);
+    char* save_ptr = NULL;
+    char* token = strtok_r(text, " ", &save_ptr);
+    char* tokens[1000]; // max 1000 tokens
+    int token_count = 0;
+
+    while (token) {
+        if (isStillWordEnlishIfConver(token)) {
+            tokens[token_count++] = token;
+        }
+        token = strtok_r(NULL, " ", &save_ptr);
+    }
+    // push unigram
+    for (int k = 0; k < token_count; k++) {
+        push_word(hash, tokens[k]);
+    }
+    // push n-gram (e.g., bigram or trigram)
+    if (n > 1) {
+        push_ngram(hash, tokens, token_count, n);
+    }
+    free(text);
+    return hash;
+}
+
+// Get the index of a word in the hash table
+// This function returns the index of the word in the hash table
+// The index is calculated based on the hash table size and the word's position
+// If the word is not found, it returns -1
 int getIndexOfWord(word_hash* hash, char* word){
     if(!hash || !word){
         fprintf(stderr, "Hash table or word is NULL\n");
@@ -429,5 +492,4 @@ int getIndexOfWord(word_hash* hash, char* word){
         i++;
     }
     return -1; // Word not found
-
 }

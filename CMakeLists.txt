@@ -8,4 +8,7 @@ add_executable(TestClion main.c
         dataframe.h
         import.h
         wordhash.c
-        utf8_vn.c)
+        utf8_vn.c
+        TFIDF.c
+        sparse_matrix.c
+        checktime.c)

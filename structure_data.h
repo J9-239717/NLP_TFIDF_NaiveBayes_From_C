@@ -33,16 +33,25 @@ typedef struct _word_hash{
     int size; // size of hash table
 }word_hash;
 
-typedef struct _sparse_node{
+typedef struct {
     int row;
     int col;
-    double values;
-}sparse_node;
+    float value;
+} sparse_entry;
 
-typedef struct _sparse_matrix{
-    sparse_node* data; // array of sparse node
-    int size; // size of array of sparse node
-    int rows, cols;
+typedef struct {
+    sparse_entry* data;
+    int size; // real size of the sparse matrix
+    int capacity; // capacity of the sparse matrix for growth
+    int rows;
+    int cols;
 } sparse_matrix;
+
+typedef struct _TF_IDF_OBJECT{
+    data_frame* df; // document for train
+    word_hash* hash; // hash table for vocab
+    float* idf_vector; // idf vector
+    sparse_matrix* tf_idf_matrix; // tf matrix
+}TF_IDF_OJ;
 
 #endif

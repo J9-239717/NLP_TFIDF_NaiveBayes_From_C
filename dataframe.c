@@ -31,7 +31,7 @@ int is_special_char(char* str){
 char* remove_stop_word(char* str, char** stopword,int size_stopword){
     if(!str || !stopword) return NULL;
     char *token,*saveptr;
-    char* rt = (char*)malloc(sizeof(char) * (strlen(str) + 1));
+    char* rt = (char*)malloc(sizeof(char) * (strlen(str) + 2));
     if(!rt){
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
@@ -349,7 +349,7 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
             }
             char* text = remove_stop_word(buffer, stopword, size_stopword);
             df->data[df->size].text = text;
-            df->data[df->size].count_word = 0;
+            df->data[df->size].count_word = countword(text, ' ');
             df->size++;
             free(buffer);
             buffer = (char*)malloc(sizeof(char) * start_size);
@@ -376,10 +376,15 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
     max_size = (count > max_size) ? count : max_size;
     char* ptr = NULL;
     char* text = parseString(buffer, ",", &ptr);
-    removeChar(ptr, ',');
+    if(!remove_punctuation(text)){
+        fprintf(stderr, "Error removing punctuation\n");
+        free(buffer);
+        return -1;
+    }
     char* label = parseString(ptr, ",", &ptr);
     df->data[df->size].text = strdup(text);
     df->data[df->size].label = strdup(label);
+    df->data[df->size].count_word = countword(text, ' ');
     df->size++;
     
 
@@ -389,6 +394,7 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
 }
 
 // main function of data frame
+// read file to data frame
 int readFiletoDataFrame(FILE* file, data_frame* data_frame,int line){
     char buffer[1024];
 
@@ -458,7 +464,7 @@ int writeDataFrameToFile(data_frame* df, const char* filename){
     fprintf(file, "\n");
 
     for(int i = 0; i < df->size; i++){
-        fprintf(file, "< %s > is <%s>\n", df->data[i].text, df->data[i].label);
+        fprintf(file, "< %s > is <%s> and count is %d\n", df->data[i].text, df->data[i].label, df->data[i].count_word);
     }
     fclose(file);
     return 0;
@@ -531,7 +537,7 @@ int remove_word_in_data_frame(data_frame* df, char** word,int size_word){
         fprintf(stderr, "Invalid data frame or word\n");
         return 0;
     }
-    FILE* file = fopen("assets/debug.txt", "w");
+    // FILE* file = fopen("assets/debug.txt", "w");
     int min_len = 6;
     for(int i = 0; i < df->size; i++){
         char *temp = NULL,*token = NULL,*saveptr = NULL;
@@ -556,7 +562,7 @@ int remove_word_in_data_frame(data_frame* df, char** word,int size_word){
             if(!flag){
                 exit_flag = 1;
                 write_word(token, temp, &origin_index, strlen(token));
-                fprintf(file, "(%s,%d)", temp,i);
+                // fprintf(file, "(%s,%d)", temp,i);
             }
             token = strtok_r(NULL, " ", &saveptr);
         }
@@ -565,12 +571,12 @@ int remove_word_in_data_frame(data_frame* df, char** word,int size_word){
         }
         free(df->data[i].text);
         df->data[i].text = strdup(temp);
-        //df->data[i].count_word = countword(temp, ' ');
+        df->data[i].count_word = countword(temp, ' ');
         free(temp);
         free(save);
-        fprintf(file, "\n");
+        // fprintf(file, "\n");
     }
-    fclose(file);
+    // fclose(file);
     return 1;
 }
 

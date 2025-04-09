@@ -1,6 +1,12 @@
 {
     "files.associations": {
-        "dataframe.h": "c"
+        "dataframe.h": "c",
+        "tfidf.h": "c",
+        "math.h": "c",
+        "structure_data.h": "c",
+        "wordhash.h": "c",
+        "sparse_matrix.h": "c",
+        "import.h": "c"
     },
     "todo-tree.tree.showCountsInTree": true
 }

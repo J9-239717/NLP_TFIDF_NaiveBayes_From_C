@@ -19,5 +19,6 @@ int road_word_hash(word_hash* src, const char* filename);
 word_hash* createWordHash();
 word_hash* WordHashWithNgram(data_frame* df, int n);
 int getIndexOfWord(word_hash* hash, char* word);
+word_hash* String_Ngram(char* str_org, int n);
 
 #endif

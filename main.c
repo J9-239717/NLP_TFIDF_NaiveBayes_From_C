@@ -1,5 +1,5 @@
 #include "dataframe.h"
-#include "wordhash.h"
+#include "TFIDF.h"
 
 void freeArrayString(char** src,int size){
     if(!src) return;
@@ -37,6 +37,7 @@ int main(int argc, char* argv[]){
     printf("Create data frame phase\n");
     data_frame* df = createDataFrame();
     readFiletoDataFrame(file,df,line);
+    test(df->size, line-1);
     fclose(file);
 
     // get noise and delete noise in data frame
@@ -49,31 +50,40 @@ int main(int argc, char* argv[]){
     freeWordHash(noise);
 
     // remove noise word in data frame
-    printf("Remove Stopword phase\n");
+    printf("Remove Noise phase\n");
     remove_word_in_data_frame(df, noise_word, size_noise);
     freeArrayString(noise_word, size_noise);
-    //writeDataFrameToFile(df, "assets/df.txt");
-
+    // writeDataFrameToFile(df, "assets/debug.txt");
     // get vocab to make feature engineering
     //word_hash* hash = WordHash(df);
     //writeWordHashToFile(hash, "assets/vocab.txt");
 
     // N-gram to make feature engineering
-    printf("N-Gram phase\n");
-    word_hash* ngram = WordHashWithNgram(df, 2);
-    char** ngram_word = NULL;
-    int size_ngram = 0;
-    ngram_word = getWordFormHash(ngram, &size_ngram);
+    // printf("N-Gram phase\n");
+    // word_hash* ngram = WordHashWithNgram(df, 2);
+    // char** ngram_word = NULL;
+    // int size_ngram = 0;
+    // ngram_word = getWordFormHash(ngram, &size_ngram);
     
     // ## TODO: Try count IDF for filter noise word
+
     // ## TODO: make spares matrix
+    
     // ## TODO: make TF-IDF
+    printf("TF-IDF phase\n");
+    TF_IDF_OJ* tfidf = createTF_IDF(df);
+    int ngram = 2;
+    sparse_matrix*temp = fit_transform(tfidf, ngram);
+    test(temp->rows, df->size);
+    test(temp->cols, tfidf->hash->size);
+    //printTF_IDF(tfidf);
     // ## TODO: make Naive Bayes
     // ## TODO: try predict
     // ## TODO: review accuracy
     printf("Free phase\n");
     freeDataFrame(df);
-    freeWordHash(ngram);
-    freeArrayString(ngram_word, size_ngram);
+    freeTF_IDF(tfidf);
+    // freeWordHash(ngram);
+    // freeArrayString(ngram_word, size_ngram);
     return 0;
 }
