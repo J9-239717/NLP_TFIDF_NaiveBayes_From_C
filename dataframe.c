@@ -31,7 +31,7 @@ int is_special_char(char* str){
 char* remove_stop_word(char* str, char** stopword,int size_stopword){
     if(!str || !stopword) return NULL;
     char *token,*saveptr;
-    char* rt = (char*)malloc(sizeof(char) * (strlen(str) + 2));
+    char* rt = (char*)malloc(sizeof(char) * (strlen(str) + 2)); //## FIXME: should be using string pool 
     if(!rt){
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
@@ -264,7 +264,7 @@ char* parseString(char* str, char* delim,char** ptr) {
 char* parseStringEnd(char* str, char* delim) {
     char* rt = NULL;
     size_t start_size = 1024;
-    rt = (char*)malloc(sizeof(char) * start_size);
+    rt = (char*)malloc(sizeof(char) * start_size); // ## FIXME: should using string pool it not much memory but it's so make cpu call many system call
     if(!rt){
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
@@ -292,6 +292,8 @@ char* parseStringEnd(char* str, char* delim) {
         length--;
         c--;
     }
+    rt[i] = '\0';
+    return rt;
 }
 
 // remove c in string
@@ -310,12 +312,10 @@ void removeChar(char* str, char c){
 // warning: should allocate array string first
 // return max size of string in file
 int dynamic_parse_string(FILE* file, data_frame* df) {
-    int start_size = 1024;
+    int start_size = 1024 * 1024;
     char* buffer = (char*)malloc(sizeof(char) * start_size);
-    if (!buffer){
-        fprintf(stderr,"Memory allocation failed\n");
-        return -1;
-    }
+    checkExistMemory(buffer);
+    char *start_p = buffer;
     int size_stopword = 0;
     char **stopword = load_stop_word(STOPWORDFILE, &size_stopword);
     if (!stopword) {
@@ -332,7 +332,6 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
             buffer[count] = '\0';
             buffer[strcspn(buffer, "\n\r")] = '\0';
             max_size = (count > max_size) ? count : max_size;
-            char* ptr = NULL;
             // parse label first
             df->data[df->size].label = parseStringEnd(buffer, ",");
             if(!addLabelFrequency(df, df->data[df->size].label)){
@@ -351,8 +350,7 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
             df->data[df->size].text = text;
             df->data[df->size].count_word = countword(text, ' ');
             df->size++;
-            free(buffer);
-            buffer = (char*)malloc(sizeof(char) * start_size);
+            buffer = start_p;
             count = 0;
             continue;
         }
@@ -388,7 +386,7 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
     df->size++;
     
 
-    free(buffer);
+    free(start_p);
     free_stop_word(stopword, size_stopword);
     return max_size;
 }
