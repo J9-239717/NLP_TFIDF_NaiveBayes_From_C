@@ -35,16 +35,17 @@ int compute_idf(TF_IDF_OJ* tfidf,int alpha){
 
 sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram){
     // FILE* file = fopen("assets/debug_word_tfidf.txt", "w");
-    sparse_matrix* matrix = createSparseMatrix(1000, df->size, tfidf->hash->size);
+    sparse_matrix* matrix = createSparseMatrix(1024*1024, df->size, tfidf->hash->size);
     checkExistMemory(matrix);
     int N = df->size; // number of documents
-    word_hash* temp = NULL;
+    word_hash* temp = createWordHash();
     int count_word = 0;
     int col=0,row=0;
     float value = 0;
     int count_miss = 0;
+    StringPool* str_pool = create_string_pool();
     for(int i = 0; i < N; i++){
-        temp = String_Ngram(df->data[i].text, ngram);
+        String_Ngram(temp,df->data[i].text, ngram, str_pool);
         checkExistMemory(temp);
         count_word = temp->size;
         word_node* node = NULL;
@@ -64,9 +65,14 @@ sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram){
                 node = node->next;
             }
         }
-        freeWordHash(temp);
+        reset_string_pool(temp->str_pool);
+        reset_word_node_pool(temp->node_pool);
+        resetWordHash(temp);
     }
+    destroy_string_pool(str_pool);
+    freeWordHash(temp);
     printf("Count miss: %d\n", count_miss);//fclose(file);
+    printf("Compute TF phase done\n");
     return matrix;
 }
 
@@ -79,19 +85,23 @@ sparse_matrix* compute_tf_idf(sparse_matrix* tf_matrix,float* idf_vector,int siz
 sparse_matrix* fit_transform(TF_IDF_OJ* tfidf,int ngram){
     checkExistMemory(tfidf);
     printf("build vocab\n");
-    start_timer();
+
     build_vocab(tfidf, ngram);
-    show_time();
+
     tfidf->idf_vector = (float*)malloc(sizeof(float) * tfidf->hash->size);
     printf("compute idf\n");
+
     start_timer();
     compute_idf(tfidf, ALPHA);
     show_time();
+
     printf("compute tf\n");
+
     start_timer();
     sparse_matrix* tf = compute_tf(tfidf, tfidf->df,ALPHA, ngram);
-    show_time();
     checkExistMemory(tf);
+    show_time();
+
     printf("compute tf-idf\n");
     start_timer();
     tfidf->tf_idf_matrix = compute_tf_idf(tf, tfidf->idf_vector, tfidf->hash->size);
@@ -116,12 +126,15 @@ void freeTF_IDF(TF_IDF_OJ* tfidf){
     }
     if(tfidf->hash){
         freeWordHash(tfidf->hash);
+        tfidf->hash = NULL;
     }
     if(tfidf->idf_vector){
         free(tfidf->idf_vector);
+        tfidf->idf_vector = NULL;
     }
     if(tfidf->tf_idf_matrix){
         freeSparseMatrix(tfidf->tf_idf_matrix);
+        tfidf->tf_idf_matrix = NULL;
     }
     free(tfidf);
 }

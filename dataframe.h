@@ -4,6 +4,7 @@
 #include "import.h"
 #include "structure_data.h"
 #include "wordhash.h"
+#include "string_pool.h"
 
 extern char* label[]; // label name
 

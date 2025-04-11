@@ -35,24 +35,30 @@ int main(int argc, char* argv[]){
     int line = countLine(filename);
     // create data frame
     printf("Create data frame phase\n");
+    start_timer();
     data_frame* df = createDataFrame();
     readFiletoDataFrame(file,df,line);
+    show_time();
     test(df->size, line-1);
     fclose(file);
 
     // get noise and delete noise in data frame
     printf("Get noise phase\n");
+    start_timer();
     word_hash* noise = createWordHash();
     road_word_hash(noise, NOISEFILE);
     char** noise_word = NULL;
     int size_noise = 0;
     noise_word = getWordFormHash(noise, &size_noise);
+    show_time();    
     freeWordHash(noise);
 
     // remove noise word in data frame
     printf("Remove Noise phase\n");
+    start_timer();
     remove_word_in_data_frame(df, noise_word, size_noise);
     freeArrayString(noise_word, size_noise);
+    show_time();
     // writeDataFrameToFile(df, "assets/debug.txt");
     // get vocab to make feature engineering
     //word_hash* hash = WordHash(df);
@@ -74,8 +80,8 @@ int main(int argc, char* argv[]){
     TF_IDF_OJ* tfidf = createTF_IDF(df);
     int ngram = 2;
     sparse_matrix*temp = fit_transform(tfidf, ngram);
-    test(temp->rows, df->size);
-    test(temp->cols, tfidf->hash->size);
+    // test(temp->rows, df->size);
+    // test(temp->cols, tfidf->hash->size);
     //printTF_IDF(tfidf);
     // ## TODO: make Naive Bayes
     // ## TODO: try predict

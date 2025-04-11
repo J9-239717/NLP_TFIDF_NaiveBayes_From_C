@@ -4,8 +4,11 @@
 #include "structure_data.h"
 #include "import.h"
 #include "utf8_vn.h"
+#include "string_pool.h"
 
 #define WORD_HASH_SIZE 26
+#define INITAL_WORD_HASH_SIZE_POOL 10000
+#define BLOCK_SIZE_WORD_HASH 3
 
 
 word_hash* WordHash(data_frame* df);
@@ -19,6 +22,11 @@ int road_word_hash(word_hash* src, const char* filename);
 word_hash* createWordHash();
 word_hash* WordHashWithNgram(data_frame* df, int n);
 int getIndexOfWord(word_hash* hash, char* word);
-word_hash* String_Ngram(char* str_org, int n);
+void String_Ngram(word_hash* origin,char* str_org, int n, StringPool* temp);
+word_node_pool* createWordNodePool();
+int freeWordNodePool(word_node_pool* pool);
+word_node* allocate_node(word_node_pool* pool);
+void reset_word_node_pool(word_node_pool* pool);
+void resetWordHash(word_hash* hash);
 
 #endif

@@ -21,16 +21,31 @@ typedef struct _data_frame{
     int size; // size of array of data frame
 }data_frame;
 
+typedef struct _String_Pool{
+    char* buffer;
+    int used;
+    int capacity;
+}StringPool;
+
 typedef struct _word_node{
     char* word;
     int freq;
     struct _word_node* next;
 }word_node;
 
+typedef struct _word_node_pool{
+    word_node** pool;
+    int used_block;
+    int block_size;
+    int used;
+}word_node_pool;
+
 typedef struct _word_hash{
     word_node* table[26]; // array store word a - z
     int size_each[26]; // size of each hash table a - z
     int size; // size of hash table
+    StringPool* str_pool; // string pool
+    word_node_pool* node_pool; // node pool
 }word_hash;
 
 typedef struct {

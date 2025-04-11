@@ -11,4 +11,5 @@ add_executable(TestClion main.c
         utf8_vn.c
         TFIDF.c
         sparse_matrix.c
-        checktime.c)
+        checktime.c
+        string_pool.c)

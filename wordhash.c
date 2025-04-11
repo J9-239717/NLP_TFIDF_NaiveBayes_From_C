@@ -1,25 +1,86 @@
 #include "wordhash.h"
 
-// This function is used to create a new word_node
-// It will allocate memory for the new node and initialize it
-word_node* createNodeWord(char* word){
-    word_node* newNode = (word_node*)malloc(sizeof(word_node));
-    if(!newNode){
-        fprintf(stderr, "Memory allocation failed for newNode\n");
-        return NULL;
+word_node_pool* createWordNodePool() {
+    word_node_pool* pool = malloc(sizeof(word_node_pool));
+    checkExistMemory(pool);
+
+    pool->pool = (word_node**)malloc(sizeof(word_node*) * BLOCK_SIZE_WORD_HASH);
+    checkExistMemory(pool->pool);
+
+    for(int i = 0; i < BLOCK_SIZE_WORD_HASH; i++) {
+        pool->pool[i] = NULL;
     }
-    newNode->word = strdup(word);
-    newNode->freq = 1;
-    newNode->next = NULL;
-    return newNode;
+
+    pool->pool[0] = (word_node*) malloc(sizeof(word_node) * INITAL_WORD_HASH_SIZE_POOL);
+    checkExistMemory(pool->pool[0]);
+
+    pool->block_size = BLOCK_SIZE_WORD_HASH;
+    pool->used_block = 0;  // index block
+    pool->used = 0;        // used node in current block
+    return pool;
 }
 
-// De allocate memory for word_node
-void freeNodeWord(word_node* node){
-    if(node){
-        free(node->word);
-        free(node);
+int freeWordNodePool(word_node_pool* pool) {
+    if (!pool) {
+        fprintf(stderr, "Word node pool is NULL\n");
+        return -1;
     }
+
+    for (int i = 0; i <= pool->used_block; i++) {
+        free(pool->pool[i]);
+    }
+    free(pool->pool);
+    free(pool);
+    return 0;
+}
+
+
+word_node* allocate_node(word_node_pool* pool) {
+    checkExistMemory(pool);
+    if (pool->used >= INITAL_WORD_HASH_SIZE_POOL) {
+        pool->used_block++;
+        if (pool->used_block >= pool->block_size) {
+            pool->block_size *= 2;
+            pool->pool = realloc(pool->pool, sizeof(word_node*) * pool->block_size);
+            fprintf(stderr, "Reallocating memory for word node pool\n");
+            checkExistMemory(pool->pool);
+        }
+        pool->pool[pool->used_block] = malloc(sizeof(word_node) * INITAL_WORD_HASH_SIZE_POOL);
+        checkExistMemory(pool->pool[pool->used_block]);
+        pool->used = 0;
+    }
+    word_node* node = &pool->pool[pool->used_block][pool->used++];
+    node->word = NULL;
+    node->freq = 0;
+    node->next = NULL;
+    return node;
+}
+
+void reset_word_node_pool(word_node_pool* pool) {
+    if (!pool) {
+        fprintf(stderr, "Word node pool is NULL\n");
+        return;
+    }
+    // Not free the pool, just reset the used index
+    for(int i = 1; i <= pool->used_block; i++) {
+        if(pool->pool[i]) {
+            free(pool->pool[i]);
+            pool->pool[i] = NULL;
+        }
+    }
+    pool->used = 0;
+    pool->used_block = 0;
+
+}
+
+// This function is used to create a new word_node
+// It will allocate memory for the new node and initialize it
+word_node* createNodeWord(char* word,StringPool* pool, word_node_pool* node_pool){
+    word_node* newNode = allocate_node(node_pool);
+    checkExistMemory(newNode);
+    newNode->word = str_pool_alloc(pool, word);
+    newNode->freq = 1;
+    return newNode;
 }
 
 // Create a new word_hash
@@ -34,7 +95,24 @@ word_hash* createWordHash(){
         newHash->table[i] = NULL;
         newHash->size_each[i] = 0;
     }
+    newHash->str_pool = create_string_pool();
+    newHash->node_pool = createWordNodePool();
     return newHash;
+}
+
+// Reset the word hash
+void resetWordHash(word_hash* hash){
+    if(!hash){
+        fprintf(stderr, "Hash table is NULL\n");
+        return;
+    }
+    for(int i = 0; i < WORD_HASH_SIZE; i++){
+        hash->size_each[i] = 0;
+        hash->table[i] = NULL;
+    }
+    hash->size = 0;
+    reset_string_pool(hash->str_pool);
+    reset_word_node_pool(hash->node_pool);
 }
 
 // Convert first character of word to English
@@ -110,7 +188,7 @@ void push_word(word_hash* dest,char* word){
         return; // Word already exists, increment frequency
     }
 
-    word_node* newNode = createNodeWord(word);
+    word_node* newNode = createNodeWord(word,dest->str_pool, dest->node_pool);
     if(!newNode){
         fprintf(stderr, "Failed to create new node for word: %s\n", word);
         return;
@@ -127,43 +205,16 @@ void push_word(word_hash* dest,char* word){
     dest->size_each[index]++;
 }
 
-// Copy the word hash table
-// Create a new hash table and copy the contents of the original
-word_hash* copyWordHash(word_hash* original){
-    if(!original){
-        fprintf(stderr, "Original hash table is NULL\n");
-        return NULL;
-    }
-    word_hash* newHash = createWordHash();
-    if(!newHash){
-        fprintf(stderr, "Memory allocation failed for newHash\n");
-        return NULL;
-    }
-    for(int i = 0; i < WORD_HASH_SIZE; i++){
-        word_node* current = original->table[i];
-        while(current){
-            push_word(newHash, current->word);
-            current = current->next;
-        }
-    }
-    return newHash;
-}
-
 // Free the word hash table
 void freeWordHash(word_hash* hash){
     if(!hash){
         fprintf(stderr, "Hash table is NULL\n");
         return;
     }
-    for(int i = 0; i < WORD_HASH_SIZE; i++){
-        word_node* current = hash->table[i];
-        while(current){
-            word_node* temp = current;
-            current = current->next;
-            freeNodeWord(temp);
-        }
-    }
+    destroy_string_pool(hash->str_pool);
+    freeWordNodePool(hash->node_pool);
     free(hash);
+    hash = NULL;
 }
 
 void printWordHash(word_hash* hash){
@@ -230,6 +281,22 @@ int getWordFreq(word_hash* hash, char* word){
     return 0; // Word not found
 }
 
+void tokenize(char* str, char* token,char delim,char** save_ptr){
+    char* curr = str;
+    int i = 0;
+    while(*curr != '\0'){
+        if(*curr == delim){
+            token[i] = '\0';
+            *save_ptr = curr + 1;
+            return;
+        }
+        token[i++] = *curr++;
+    }
+    token[i] = '\0';
+    *save_ptr = NULL; // No more tokens
+    return;
+}
+
 // Create a word hash from a data frame
 // This function processes the text in the data frame and adds words to the hash table
 word_hash* WordHash(data_frame* df){
@@ -242,26 +309,22 @@ word_hash* WordHash(data_frame* df){
         fprintf(stderr, "Failed to create word hash\n");
         return NULL;
     }
+    char buffer[1024];buffer[0] = '\0';
     for(int i = 0; i < df->size; i++){
-        char* text = strdup(df->data[i].text);
-        if(!text){
-            fprintf(stderr, "Memory allocation failed for text\n");
-            freeWordHash(hash);
-            return NULL;
-        }
-        char* save = text;
+        char* text = df->data[i].text;
         // Process the text and add words to the hash
         char* save_ptr = NULL;
-        char* token = strtok_r(text, " ", &save_ptr);
-        while(token){
-            if(!isStillWordEnlishIfConver(token)){
-                token = strtok_r(NULL, " ", &save_ptr);
+        tokenize(text, buffer, ' ', &save_ptr);
+        while(buffer[0] != '\0' && save_ptr != NULL){
+            if(!isStillWordEnlishIfConver(buffer)){
+                buffer[0] = '\0'; // Clear the buffer
+                if(save_ptr != NULL) tokenize(save_ptr, buffer, ' ', &save_ptr);
                 continue; // Skip if not a valid word
             }
-            push_word(hash, token);
-            token = strtok_r(NULL, " ", &save_ptr);
+            push_word(hash, buffer);
+            buffer[0] = '\0'; // Clear the buffer
+            if(save_ptr != NULL) tokenize(save_ptr, buffer, ' ', &save_ptr);
         }
-        free(save); // Free the duplicated string
     }
     return hash;
 }
@@ -291,7 +354,6 @@ word_hash* smooth_word(word_hash* hash,int smallest) {
                 temp->next = NULL; // Disconnect the node
                 // Add to the new hash table
                 push_word(rt, temp->word);
-                freeNodeWord(temp); // Free the removed node
                 hash->size--;
             } else {
                 prev = current;
@@ -403,22 +465,37 @@ void push_ngram(word_hash* dest, char** tokens, int token_count, int n) {
 // if n > 1 it will be n-gram
 word_hash* WordHashWithNgram(data_frame* df, int n) {
     if (!df) return NULL;
-    word_hash* hash = createWordHash();
+    printf("WordHashWithNgram: create wordhash\n");
 
+    start_timer();
+    word_hash* hash = createWordHash();
+    checkExistMemory(hash);
+    show_time();
+
+    printf("WordHashWithNgram: create string pool\n");
+    start_timer();
+    StringPool* str_p = create_string_pool();
+    checkExistMemory(str_p);
+    show_time();
+
+    printf("WordHashWithNgram: create main wordhash\n");
+    start_timer();
+    char token_buffer[128];
     for (int i = 0; i < df->size; i++) {
-        char* text = strdup(df->data[i].text);
+        char* text = df->data[i].text;
         if (!text) continue;
 
-        char* save_ptr = NULL;
-        char* token = strtok_r(text, " ", &save_ptr);
+        char* save_ptr = text;
         char* tokens[1000]; // max 1000 tokens
         int token_count = 0;
 
-        while (token) {
-            if (isStillWordEnlishIfConver(token)) {
-                tokens[token_count++] = token;
+        while (*save_ptr != '\0') {
+            tokenize(save_ptr, token_buffer, ' ', &save_ptr);
+            if (token_buffer[0] == '\0') break; // No more tokens
+
+            if (isStillWordEnlishIfConver(token_buffer)) {
+                tokens[token_count++] = str_pool_alloc(str_p, token_buffer);
             }
-            token = strtok_r(NULL, " ", &save_ptr);
         }
 
         // push unigram
@@ -430,39 +507,39 @@ word_hash* WordHashWithNgram(data_frame* df, int n) {
         if (n > 1) {
             push_ngram(hash, tokens, token_count, n);
         }
-
-        free(text);
+        reset_string_pool(str_p);
     }
+    show_time();
+    destroy_string_pool(str_p);
     return hash;
 }
 
 // like WordHashWithNgram but only for string
-word_hash* String_Ngram(char* str_org, int n){
-    char* text = strdup(str_org);
+void String_Ngram(word_hash* origin,char* str_org, int n, StringPool* temp){
+    char* text = str_org;
     checkExistMemory(text);
-    word_hash* hash = createWordHash();
-    checkExistMemory(hash);
-    char* save_ptr = NULL;
-    char* token = strtok_r(text, " ", &save_ptr);
+    char* save_ptr = text;
     char* tokens[1000]; // max 1000 tokens
     int token_count = 0;
-
-    while (token) {
+    char token[128];token[0] = '\0';
+    while (save_ptr != NULL) {
+        tokenize(save_ptr, token, ' ', &save_ptr);
         if (isStillWordEnlishIfConver(token)) {
-            tokens[token_count++] = token;
+            tokens[token_count++] = str_pool_alloc(temp, token);
         }
-        token = strtok_r(NULL, " ", &save_ptr);
+        if (token[0] == '\0') break; // No more tokens
+        if (token_count >= 1000) break; // Prevent overflow
+        token[0] = '\0'; // Clear the token buffer
     }
     // push unigram
     for (int k = 0; k < token_count; k++) {
-        push_word(hash, tokens[k]);
+        push_word(origin, tokens[k]);
     }
     // push n-gram (e.g., bigram or trigram)
     if (n > 1) {
-        push_ngram(hash, tokens, token_count, n);
+        push_ngram(origin, tokens, token_count, n);
     }
-    free(text);
-    return hash;
+
 }
 
 // Get the index of a word in the hash table

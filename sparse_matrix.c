@@ -25,14 +25,15 @@ int add_entry(sparse_matrix* matrix, int row, int col, float new_value){
         return -1;
     }
 
-    // Check if the entry already exists
-    for (int i = 0; i < matrix->size; i++) {
-        if (matrix->data[i].row == row && matrix->data[i].col == col) {
-            // Update the existing entry
-            matrix->data[i].value = new_value;
-            return 0;
-        }
-    }
+    // ## TODO: check this function who used it not sure it have exist row or col , it should check frist call this function becuaes if check in this it's slow
+    // // Check if the entry already exists
+    // for (int i = 0; i < matrix->size; i++) {
+    //     if (matrix->data[i].row == row && matrix->data[i].col == col) {
+    //         // Update the existing entry
+    //         matrix->data[i].value = new_value;
+    //         return 0;
+    //     }
+    // }
     // If the entry does not exist, add a new one
     if (matrix->size >= matrix->capacity) {
         // Resize the array if necessary
@@ -42,6 +43,7 @@ int add_entry(sparse_matrix* matrix, int row, int col, float new_value){
             fprintf(stderr, "Memory allocation failed\n");
             return -1;
         }
+        printf("Reallocating memory for sparse matrix\n");
     }
 
     // Add the new entry
