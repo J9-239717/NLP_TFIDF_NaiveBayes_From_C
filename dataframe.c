@@ -31,7 +31,7 @@ int is_special_char(char* str){
 char* remove_stop_word(char* str, char** stopword,int size_stopword){
     if(!str || !stopword) return NULL;
     char *token,*saveptr;
-    char* rt = (char*)malloc(sizeof(char) * (strlen(str) + 2)); //## FIXME: should be using string pool 
+    char* rt = (char*)malloc(sizeof(char) * (strlen(str) + 2));
     if(!rt){
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;
@@ -71,7 +71,11 @@ char** load_stop_word(char* filename,int *save_size){
     int size = 0;
     char buffer[1024];
     // get size of stop word
-    fgets(buffer, 1024, file);
+    if(!fgets(buffer, 1024, file)){
+        fprintf(stderr, "Error reading stop word size\n");
+        fclose(file);
+        return NULL;
+    }
     buffer[strcspn(buffer, "\n\r")] = '\0';
     size = atoi(buffer);
     if(size <= 0){

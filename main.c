@@ -40,6 +40,7 @@ int main(int argc, char* argv[]){
     readFiletoDataFrame(file,df,line);
     show_time();
     test(df->size, line-1);
+    info_printf("Data frame size: %d\n", df->size);
     fclose(file);
 
     // get noise and delete noise in data frame
@@ -59,36 +60,26 @@ int main(int argc, char* argv[]){
     remove_word_in_data_frame(df, noise_word, size_noise);
     freeArrayString(noise_word, size_noise);
     show_time();
-    // writeDataFrameToFile(df, "assets/debug.txt");
-    // get vocab to make feature engineering
-    //word_hash* hash = WordHash(df);
-    //writeWordHashToFile(hash, "assets/vocab.txt");
-
-    // N-gram to make feature engineering
-    // printf("N-Gram phase\n");
-    // word_hash* ngram = WordHashWithNgram(df, 2);
-    // char** ngram_word = NULL;
-    // int size_ngram = 0;
-    // ngram_word = getWordFormHash(ngram, &size_ngram);
     
-    // ## TODO: Try count IDF for filter noise word
-
-    // ## TODO: make spares matrix
-    
-    // ## TODO: make TF-IDF
     func_printf("TF-IDF phase\n");
     TF_IDF_OJ* tfidf = createTF_IDF(df);
-    int ngram = 1;
+    int ngram = 2;
     sparse_matrix*temp = fit_transform(tfidf, ngram);
     test(temp->rows, df->size);
     test(temp->cols, tfidf->hash->size);
+    writeWordHashToFile(tfidf->hash, "assets/debug_wordhash.txt");
     // ## TODO: make Naive Bayes
+    func_printf("Naive Bayes phase\n");
+
     // ## TODO: try predict
+    func_printf("Predict phase\n");
+
     // ## TODO: review accuracy
+    func_printf("Accuracy phase\n");
+
+    // free memory
     func_printf("Free phase\n");
     freeDataFrame(df);
     freeTF_IDF(tfidf);
-    // freeWordHash(ngram);
-    // freeArrayString(ngram_word, size_ngram);
     return 0;
 }

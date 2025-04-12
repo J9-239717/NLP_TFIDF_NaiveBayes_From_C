@@ -44,11 +44,12 @@ sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram){
     float value = 0;
     int count_miss = 0;
     StringPool* str_pool = create_string_pool();
+    word_node* node = NULL;
     for(int i = 0; i < N; i++){
         String_Ngram(temp,df->data[i].text, ngram, str_pool);
         checkExistMemory(temp);
         count_word = temp->size;
-        word_node* node = NULL;
+        node = NULL;
         for(int j = 0 ; j < WORD_HASH_SIZE; j++){
             node = temp->table[j];
             while(node){
@@ -85,18 +86,17 @@ sparse_matrix* compute_tf_idf(sparse_matrix* tf_matrix,float* idf_vector,int siz
 sparse_matrix* fit_transform(TF_IDF_OJ* tfidf,int ngram){
     checkExistMemory(tfidf);
     func_printf("build vocab\n");
-
+    start_timer();
     build_vocab(tfidf, ngram);
+    show_time();
 
     tfidf->idf_vector = (float*)malloc(sizeof(float) * tfidf->hash->size);
     func_printf("compute idf\n");
-
     start_timer();
     compute_idf(tfidf, ALPHA);
     show_time();
 
     func_printf("compute tf\n");
-
     start_timer();
     sparse_matrix* tf = compute_tf(tfidf, tfidf->df,ALPHA, ngram);
     checkExistMemory(tf);

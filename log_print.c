@@ -4,22 +4,22 @@ void log_message(enum LogLevel level,const char* fmt,...) {
     const char* level_str;
     switch (level) {
         case LOG_TEST:
-            level_str = "   [TEST]";
+            level_str = "           [TEST]";
             break;
         case LOG_FUNCTION_CALL:
-            level_str = " [FUNCTION CALL]";
+            level_str = "[FUNCTION CALL]";
             break;
         case LOG_INFO:
             level_str = "[INFO]";
             break;
         case LOG_DEBUG:
-            level_str = "       [DEBUG]";
+            level_str = "           [DEBUG]";
             break;
         case LOG_ERROR:
-            level_str = "       [ERROR]";
+            level_str = "           [ERROR]";
             break;
         case LOG_TIME:
-            level_str = "  [TIME]";
+            level_str = "       [TIME]";
             break;
         default:
             level_str = "[UNKNOWN]";

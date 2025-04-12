@@ -15,7 +15,7 @@ double stop_timer();
 
 #define show_time() do{\
     double time = stop_timer();\
-    time_printf("Time taken: %.2f seconds\n", time);\
+    time_printf("Time taken: %.7f seconds\n", time);\
 }while(0);\
 
 #endif // _TIMEUTIL_H_

@@ -13,7 +13,7 @@
 #define ALPHA 1
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
-#define STOPWORDFILE "assets/stopworden.txt"
+#define STOPWORDFILE "assets/stopword.txt"
 //#define STOPWORDFILE "D:\\TestC_AI\\NLP_TFIDF_NaiveBayes_From_C\\assets\\stopword.txt"
 
 #define NOISEFILE "assets/noise.txt"

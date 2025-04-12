@@ -117,7 +117,7 @@ void resetWordHash(word_hash* hash){
 
 // Convert first character of word to English
 // Return the index for the hash table
-char getIndexHashWord(char* word){
+inline __attribute__((always_inline)) char getIndexHashWord(char* word){
     if(!word){
         fprintf(stderr, "Word is NULL\n");
         return -1;
@@ -467,15 +467,17 @@ word_hash* WordHashWithNgram(data_frame* df, int n) {
 
     StringPool* str_p = create_string_pool();
     checkExistMemory(str_p);
-
+    char* tokens[1000]; // max 1000 tokens
     char token_buffer[128];
+    char *save_ptr = NULL;
+    int token_count = 0;
+    
     for (int i = 0; i < df->size; i++) {
         char* text = df->data[i].text;
         if (!text) continue;
 
-        char* save_ptr = text;
-        char* tokens[1000]; // max 1000 tokens
-        int token_count = 0;
+        save_ptr = text;
+        token_count = 0;
 
         while (*save_ptr != '\0') {
             tokenize(save_ptr, token_buffer, ' ', &save_ptr);
@@ -533,7 +535,7 @@ void String_Ngram(word_hash* origin,char* str_org, int n, StringPool* temp){
 // This function returns the index of the word in the hash table
 // The index is calculated based on the hash table size and the word's position
 // If the word is not found, it returns -1
-int getIndexOfWord(word_hash* hash, char* word){
+inline __attribute__((always_inline)) int getIndexOfWord(word_hash* hash, char* word){
     if(!hash || !word){
         fprintf(stderr, "Hash table or word is NULL\n");
         return -1;
