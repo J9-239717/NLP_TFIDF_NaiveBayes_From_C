@@ -1,6 +1,14 @@
 #ifndef _STRUCTURE_DATA_H_
 #define _STRUCTURE_DATA_H_
 
+#include<stdio.h>
+
+typedef struct _buffer_string{
+    char* buffer;
+    size_t size;
+    size_t capacity;
+}buffer_string;
+
 typedef struct _label_frequency{
     char* label;
     int frequency;

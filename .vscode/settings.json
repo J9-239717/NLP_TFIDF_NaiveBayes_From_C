@@ -6,7 +6,9 @@
         "structure_data.h": "c",
         "wordhash.h": "c",
         "sparse_matrix.h": "c",
-        "import.h": "c"
+        "import.h": "c",
+        "log_print.h": "c",
+        "checktime.h": "c"
     },
     "todo-tree.tree.showCountsInTree": true
 }

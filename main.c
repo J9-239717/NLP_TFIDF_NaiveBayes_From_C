@@ -34,7 +34,7 @@ int main(int argc, char* argv[]){
     }
     int line = countLine(filename);
     // create data frame
-    printf("Create data frame phase\n");
+    func_printf("Create data frame phase");
     start_timer();
     data_frame* df = createDataFrame();
     readFiletoDataFrame(file,df,line);
@@ -43,7 +43,7 @@ int main(int argc, char* argv[]){
     fclose(file);
 
     // get noise and delete noise in data frame
-    printf("Get noise phase\n");
+    func_printf("Get noise phase\n");
     start_timer();
     word_hash* noise = createWordHash();
     road_word_hash(noise, NOISEFILE);
@@ -54,7 +54,7 @@ int main(int argc, char* argv[]){
     freeWordHash(noise);
 
     // remove noise word in data frame
-    printf("Remove Noise phase\n");
+    func_printf("Remove Noise phase\n");
     start_timer();
     remove_word_in_data_frame(df, noise_word, size_noise);
     freeArrayString(noise_word, size_noise);
@@ -76,17 +76,16 @@ int main(int argc, char* argv[]){
     // ## TODO: make spares matrix
     
     // ## TODO: make TF-IDF
-    printf("TF-IDF phase\n");
+    func_printf("TF-IDF phase\n");
     TF_IDF_OJ* tfidf = createTF_IDF(df);
-    int ngram = 2;
+    int ngram = 1;
     sparse_matrix*temp = fit_transform(tfidf, ngram);
-    // test(temp->rows, df->size);
-    // test(temp->cols, tfidf->hash->size);
-    //printTF_IDF(tfidf);
+    test(temp->rows, df->size);
+    test(temp->cols, tfidf->hash->size);
     // ## TODO: make Naive Bayes
     // ## TODO: try predict
     // ## TODO: review accuracy
-    printf("Free phase\n");
+    func_printf("Free phase\n");
     freeDataFrame(df);
     freeTF_IDF(tfidf);
     // freeWordHash(ngram);

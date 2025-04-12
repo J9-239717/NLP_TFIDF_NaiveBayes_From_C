@@ -400,10 +400,7 @@ char** getWordFormHash(word_hash* src,int* rt_size){
     if(!result){
         fprintf(stderr, "   Memory allocation failed for result\n");
         exit(EXIT_FAILURE);
-    }else{
-        printf("    Memory allocation for result successful with size: %d\n", src->size+1);
     }
-
     int index = 0;
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         word_node* current = src->table[i];
@@ -465,21 +462,12 @@ void push_ngram(word_hash* dest, char** tokens, int token_count, int n) {
 // if n > 1 it will be n-gram
 word_hash* WordHashWithNgram(data_frame* df, int n) {
     if (!df) return NULL;
-    printf("WordHashWithNgram: create wordhash\n");
-
-    start_timer();
     word_hash* hash = createWordHash();
     checkExistMemory(hash);
-    show_time();
 
-    printf("WordHashWithNgram: create string pool\n");
-    start_timer();
     StringPool* str_p = create_string_pool();
     checkExistMemory(str_p);
-    show_time();
 
-    printf("WordHashWithNgram: create main wordhash\n");
-    start_timer();
     char token_buffer[128];
     for (int i = 0; i < df->size; i++) {
         char* text = df->data[i].text;
@@ -509,7 +497,6 @@ word_hash* WordHashWithNgram(data_frame* df, int n) {
         }
         reset_string_pool(str_p);
     }
-    show_time();
     destroy_string_pool(str_p);
     return hash;
 }
