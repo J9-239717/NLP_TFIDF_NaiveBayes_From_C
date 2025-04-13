@@ -67,7 +67,6 @@ int main(int argc, char* argv[]){
     sparse_matrix*temp = fit_transform(tfidf, ngram);
     test(temp->rows, df->size);
     test(temp->cols, tfidf->hash->size);
-    writeWordHashToFile(tfidf->hash, "assets/debug_wordhash.txt");
     // ## TODO: make Naive Bayes
     func_printf("Naive Bayes phase\n");
 

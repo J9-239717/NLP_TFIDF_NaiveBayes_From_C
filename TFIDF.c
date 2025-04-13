@@ -25,8 +25,8 @@ int compute_idf(TF_IDF_OJ* tfidf,int alpha){
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         word_node* node = tfidf->hash->table[i];
         while(node){
-            float idf =(float) ((N + alpha) / ((float)node->freq + alpha));
-            tfidf->idf_vector[count++] = log(idf + alpha);
+            float idf = ((float) (N + alpha) / (float) (node->freq + alpha));
+            tfidf->idf_vector[count++] = log(idf) + alpha;
             node = node->next;
         }
     }
@@ -144,15 +144,18 @@ void printTF_IDF(TF_IDF_OJ* tfidf){
         fprintf(stderr, "TF-IDF is NULL\n");
         return;
     }
-    printf("Vocab:\n");
+    info_printf("Vocab:\n");
     printWordHash(tfidf->hash);
-    printf("TF-IDf\n");
-    printSparseMatrix(tfidf->tf_idf_matrix);
-    printf("IDF\n");
-    for(int i = 0; i < tfidf->hash->size; i++){
-        printf("%f ", tfidf->idf_vector[i]);
+    info_printf("TF-IDf with N doc is %d\n",tfidf->df->size);
+    sparse_matrix* matrix = tfidf->tf_idf_matrix;
+    for (int i = 0; i < matrix->size; i++) {
+        printf("  %d.Doc %d - Word %s = %.2f\n",i ,matrix->data[i].row, getWordFromIndex(tfidf->hash,matrix->data[i].col), matrix->data[i].value);
     }
-    printf("\n");
-    printf("Size of vocab: %d\n", tfidf->hash->size);
-    printf("Size of tf-idf matrix: %d\n", tfidf->tf_idf_matrix->size);
+    info_printf("IDF\n");
+    for(int i = 0; i < tfidf->hash->size; i++){
+        printf("  %s:%f\n",getWordFromIndex(tfidf->hash,i) ,tfidf->idf_vector[i]);
+    }
+    info_printf("\n");
+    info_printf("Size of vocab: %d\n", tfidf->hash->size);
+    info_printf("Size of tf-idf matrix: %d\n", tfidf->tf_idf_matrix->size);
 }

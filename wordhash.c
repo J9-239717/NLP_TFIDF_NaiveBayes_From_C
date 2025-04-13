@@ -222,7 +222,7 @@ void printWordHash(word_hash* hash){
         fprintf(stderr, "Hash table is NULL\n");
         return;
     }
-    printf("Word Hash Table:\n");
+    printf("Word Hash Table Size is %d:\n",hash->size);
     int count = 0;
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         word_node* current = hash->table[i];
@@ -232,7 +232,6 @@ void printWordHash(word_hash* hash){
             count++;
         }
     }
-    printf("Word Hash Table Size: %d\n", hash->size);
 }
 
 // Pop a word from the hash table
@@ -558,4 +557,29 @@ inline __attribute__((always_inline)) int getIndexOfWord(word_hash* hash, char* 
         i++;
     }
     return -1; // Word not found
+}
+
+inline __attribute__((always_inline)) char* getWordFromIndex(word_hash* hash, int index){
+    if(!hash || index < 0 || index >= hash->size){
+        fprintf(stderr, "Hash table is NULL or index out of bounds\n");
+        return NULL;
+    }
+    int offset = 0;
+    for(int i = 0; i < WORD_HASH_SIZE; i++){
+        if(offset + hash->size_each[i] > index){
+            word_node* current = hash->table[i];
+            int j = 0;
+            while(current && j < (index - offset)){
+                current = current->next;
+                j++;
+            }
+            if(current){
+                return current->word; // Return the word at the specified index
+            }else{
+                return NULL; // Index out of bounds
+            }
+        }
+        offset += hash->size_each[i];
+    }
+    return NULL; // Index not found
 }
