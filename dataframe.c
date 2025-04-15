@@ -6,6 +6,14 @@ char* label[] = {
     "positive"
 };
 
+char* getLabel(int index){
+    if(index < 0 || index >= sizeof(label)/sizeof(label[0])){
+        fprintf(stderr, "Invalid label index\n");
+        return NULL;
+    }
+    return label[index];
+}
+
 // linear search stop word
 int is_stop_word(char* str, char** stopword,int size){
     if(!str || !stopword) return 0;
@@ -135,6 +143,7 @@ data_frame* createDataFrame(){
     df->label_freq = NULL;
     df->keys = NULL;
     df->data = NULL;
+    df->size_label = 0;
     return df;
 }
 
@@ -161,6 +170,10 @@ int addLabelFrequency(data_frame* df, char* label){
     label_frequency* lf = df->label_freq;
     while(lf){
         if(memcmp(lf->label, label,strlen(label)) == 0){
+            if(DEBUG){
+                debug_printf("Label %s already exists\n", label);
+                debug_printf("Frequency: %d\n", lf->frequency +1);
+            }
             lf->frequency++;
             return 1;
         }
@@ -174,6 +187,8 @@ int addLabelFrequency(data_frame* df, char* label){
     }
     new_lf->next = df->label_freq;
     df->label_freq = new_lf;
+    df->size_label++;
+    return 1;
 }
 
 // show label and frequency
@@ -386,6 +401,11 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
     char* label = parseString(ptr, ",", &ptr);
     df->data[df->size].text = strdup(text);
     df->data[df->size].label = strdup(label);
+    if(!addLabelFrequency(df, df->data[df->size].label)){
+        fprintf(stderr, "Error adding label frequency\n");
+        free(buffer);
+        return -1;
+    }
     df->data[df->size].count_word = countword(text, ' ');
     df->size++;
     

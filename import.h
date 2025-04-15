@@ -9,7 +9,7 @@
 #include "checktime.h"
 #include "log_print.h"
 
-#define DEBUG 1
+#define DEBUG 0
 #define ALPHA 1
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
@@ -30,7 +30,7 @@
 
 #define checkExistMemory(a) do{\
     if(a == NULL){\
-        fprintf(stderr, "Memory allocation failed at line %d in file %s\n", __LINE__, __FILE__);\
+        error_printf("Memory allocation failed at line %d in file %s\n", __LINE__, __FILE__);\
         exit(EXIT_FAILURE);\
     }\
 }while(0);\

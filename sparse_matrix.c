@@ -91,3 +91,15 @@ sparse_matrix* sparese_row_wise(sparse_matrix* matrix,float* vector,int size_vec
     }
     return result;
 }
+
+void print_SP_Matrix_to_file(sparse_matrix* matrix, const char* filename,word_hash* vocab){
+    FILE* file = fopen(filename, "w");
+    if (!file) {
+        fprintf(stderr, "Cannot open file %s\n", filename);
+        return;
+    }
+    for (int i = 0; i < matrix->size; i++) {
+        fprintf(file, "%d.Doc %d - Word %s = %.2f\n",i ,matrix->data[i].row,getWordFromIndex(vocab,matrix->data[i].col), matrix->data[i].value);
+    }
+    fclose(file);
+}

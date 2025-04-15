@@ -1,5 +1,6 @@
 #include "dataframe.h"
 #include "TFIDF.h"
+#include "naive_bayes.h"
 
 void freeArrayString(char** src,int size){
     if(!src) return;
@@ -67,9 +68,14 @@ int main(int argc, char* argv[]){
     sparse_matrix*temp = fit_transform(tfidf, ngram);
     test(temp->rows, df->size);
     test(temp->cols, tfidf->hash->size);
-    // ## TODO: make Naive Bayes
-    func_printf("Naive Bayes phase\n");
+    test(tfidf->tf_idf_matrix->size, tfidf->hash->size);
 
+    // ## TODO: should smote_oversample before fit model
+    func_printf("Naive Bayes phase\n");
+    Naive_Bayes_OJ* nb = createNaive_Bayes(df, tfidf->hash);
+    fitNB(nb, tfidf, df);
+    printNaive_Bayes(nb);
+    getlikelihood_to_file(nb, "assets/likelihood.txt");
     // ## TODO: try predict
     func_printf("Predict phase\n");
 
@@ -80,5 +86,6 @@ int main(int argc, char* argv[]){
     func_printf("Free phase\n");
     freeDataFrame(df);
     freeTF_IDF(tfidf);
+    freeNaive_Bayes(nb);
     return 0;
 }

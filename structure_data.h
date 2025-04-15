@@ -25,6 +25,7 @@ typedef struct _data_frame{
     char** keys; // header name
     int sizeKeys; // size of header name
     label_frequency* label_freq; // label frequency
+    int size_label; // size of label frequency
     _data_frame_node* data; // array of data frame
     int size; // size of array of data frame
 }data_frame;
@@ -76,5 +77,15 @@ typedef struct _TF_IDF_OBJECT{
     float* idf_vector; // idf vector
     sparse_matrix* tf_idf_matrix; // tf matrix
 }TF_IDF_OJ;
+
+#define MAX_CLASS 10 // max class
+
+typedef struct _Naive_Bayes_OJ{
+    float prior[MAX_CLASS]; // prior probability of each class
+    int num_classes; // number of classes
+    int vocab_size; // size of vocabulary
+    word_hash* hash; // hash table for vocab
+    float * likelihood; // likelihood probability of each class
+}Naive_Bayes_OJ;
 
 #endif
