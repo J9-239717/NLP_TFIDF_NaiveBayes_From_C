@@ -25,16 +25,6 @@ int add_entry(sparse_matrix* matrix, int row, int col, float new_value){
         return -1;
     }
 
-    // ## TODO: check this function who used it not sure it have exist row or col , it should check frist call this function becuaes if check in this it's slow
-    // // Check if the entry already exists
-    // for (int i = 0; i < matrix->size; i++) {
-    //     if (matrix->data[i].row == row && matrix->data[i].col == col) {
-    //         // Update the existing entry
-    //         matrix->data[i].value = new_value;
-    //         return 0;
-    //     }
-    // }
-    // If the entry does not exist, add a new one
     if (matrix->size >= matrix->capacity) {
         // Resize the array if necessary
         matrix->capacity *= 2;
@@ -100,4 +90,16 @@ sparse_matrix* sparese_row_wise(sparse_matrix* matrix,float* vector,int size_vec
         add_entry(result, matrix->data[i].row, col, value);
     }
     return result;
+}
+
+void print_SP_Matrix_to_file(sparse_matrix* matrix, const char* filename,word_hash* vocab){
+    FILE* file = fopen(filename, "w");
+    if (!file) {
+        fprintf(stderr, "Cannot open file %s\n", filename);
+        return;
+    }
+    for (int i = 0; i < matrix->size; i++) {
+        fprintf(file, "%d.Doc %d - Word %s = %.2f\n",i ,matrix->data[i].row,getWordFromIndex(vocab,matrix->data[i].col), matrix->data[i].value);
+    }
+    fclose(file);
 }

@@ -117,7 +117,7 @@ void resetWordHash(word_hash* hash){
 
 // Convert first character of word to English
 // Return the index for the hash table
-char getIndexHashWord(char* word){
+inline __attribute__((always_inline)) char getIndexHashWord(char* word){
     if(!word){
         fprintf(stderr, "Word is NULL\n");
         return -1;
@@ -222,7 +222,7 @@ void printWordHash(word_hash* hash){
         fprintf(stderr, "Hash table is NULL\n");
         return;
     }
-    printf("Word Hash Table:\n");
+    printf("Word Hash Table Size is %d:\n",hash->size);
     int count = 0;
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         word_node* current = hash->table[i];
@@ -232,7 +232,6 @@ void printWordHash(word_hash* hash){
             count++;
         }
     }
-    printf("Word Hash Table Size: %d\n", hash->size);
 }
 
 // Pop a word from the hash table
@@ -400,10 +399,7 @@ char** getWordFormHash(word_hash* src,int* rt_size){
     if(!result){
         fprintf(stderr, "   Memory allocation failed for result\n");
         exit(EXIT_FAILURE);
-    }else{
-        printf("    Memory allocation for result successful with size: %d\n", src->size+1);
     }
-
     int index = 0;
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         word_node* current = src->table[i];
@@ -465,29 +461,22 @@ void push_ngram(word_hash* dest, char** tokens, int token_count, int n) {
 // if n > 1 it will be n-gram
 word_hash* WordHashWithNgram(data_frame* df, int n) {
     if (!df) return NULL;
-    printf("WordHashWithNgram: create wordhash\n");
-
-    start_timer();
     word_hash* hash = createWordHash();
     checkExistMemory(hash);
-    show_time();
 
-    printf("WordHashWithNgram: create string pool\n");
-    start_timer();
     StringPool* str_p = create_string_pool();
     checkExistMemory(str_p);
-    show_time();
-
-    printf("WordHashWithNgram: create main wordhash\n");
-    start_timer();
+    char* tokens[1000]; // max 1000 tokens
     char token_buffer[128];
+    char *save_ptr = NULL;
+    int token_count = 0;
+    
     for (int i = 0; i < df->size; i++) {
         char* text = df->data[i].text;
         if (!text) continue;
 
-        char* save_ptr = text;
-        char* tokens[1000]; // max 1000 tokens
-        int token_count = 0;
+        save_ptr = text;
+        token_count = 0;
 
         while (*save_ptr != '\0') {
             tokenize(save_ptr, token_buffer, ' ', &save_ptr);
@@ -509,7 +498,6 @@ word_hash* WordHashWithNgram(data_frame* df, int n) {
         }
         reset_string_pool(str_p);
     }
-    show_time();
     destroy_string_pool(str_p);
     return hash;
 }
@@ -546,7 +534,7 @@ void String_Ngram(word_hash* origin,char* str_org, int n, StringPool* temp){
 // This function returns the index of the word in the hash table
 // The index is calculated based on the hash table size and the word's position
 // If the word is not found, it returns -1
-int getIndexOfWord(word_hash* hash, char* word){
+inline __attribute__((always_inline)) int getIndexOfWord(word_hash* hash, char* word){
     if(!hash || !word){
         fprintf(stderr, "Hash table or word is NULL\n");
         return -1;
@@ -569,4 +557,29 @@ int getIndexOfWord(word_hash* hash, char* word){
         i++;
     }
     return -1; // Word not found
+}
+
+inline __attribute__((always_inline)) char* getWordFromIndex(word_hash* hash, int index){
+    if(!hash || index < 0 || index >= hash->size){
+        fprintf(stderr, "Hash table is NULL or index out of bounds\n");
+        return NULL;
+    }
+    int offset = 0;
+    for(int i = 0; i < WORD_HASH_SIZE; i++){
+        if(offset + hash->size_each[i] > index){
+            word_node* current = hash->table[i];
+            int j = 0;
+            while(current && j < (index - offset)){
+                current = current->next;
+                j++;
+            }
+            if(current){
+                return current->word; // Return the word at the specified index
+            }else{
+                return NULL; // Index out of bounds
+            }
+        }
+        offset += hash->size_each[i];
+    }
+    return NULL; // Index not found
 }

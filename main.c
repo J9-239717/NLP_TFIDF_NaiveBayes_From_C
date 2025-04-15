@@ -1,5 +1,6 @@
 #include "dataframe.h"
 #include "TFIDF.h"
+#include "naive_bayes.h"
 
 void freeArrayString(char** src,int size){
     if(!src) return;
@@ -34,16 +35,17 @@ int main(int argc, char* argv[]){
     }
     int line = countLine(filename);
     // create data frame
-    printf("Create data frame phase\n");
+    func_printf("Create data frame phase");
     start_timer();
     data_frame* df = createDataFrame();
     readFiletoDataFrame(file,df,line);
     show_time();
     test(df->size, line-1);
+    info_printf("Data frame size: %d\n", df->size);
     fclose(file);
 
     // get noise and delete noise in data frame
-    printf("Get noise phase\n");
+    func_printf("Get noise phase\n");
     start_timer();
     word_hash* noise = createWordHash();
     road_word_hash(noise, NOISEFILE);
@@ -54,42 +56,36 @@ int main(int argc, char* argv[]){
     freeWordHash(noise);
 
     // remove noise word in data frame
-    printf("Remove Noise phase\n");
+    func_printf("Remove Noise phase\n");
     start_timer();
     remove_word_in_data_frame(df, noise_word, size_noise);
     freeArrayString(noise_word, size_noise);
     show_time();
-    // writeDataFrameToFile(df, "assets/debug.txt");
-    // get vocab to make feature engineering
-    //word_hash* hash = WordHash(df);
-    //writeWordHashToFile(hash, "assets/vocab.txt");
-
-    // N-gram to make feature engineering
-    // printf("N-Gram phase\n");
-    // word_hash* ngram = WordHashWithNgram(df, 2);
-    // char** ngram_word = NULL;
-    // int size_ngram = 0;
-    // ngram_word = getWordFormHash(ngram, &size_ngram);
     
-    // ## TODO: Try count IDF for filter noise word
-
-    // ## TODO: make spares matrix
-    
-    // ## TODO: make TF-IDF
-    printf("TF-IDF phase\n");
+    func_printf("TF-IDF phase\n");
     TF_IDF_OJ* tfidf = createTF_IDF(df);
     int ngram = 2;
     sparse_matrix*temp = fit_transform(tfidf, ngram);
-    // test(temp->rows, df->size);
-    // test(temp->cols, tfidf->hash->size);
-    //printTF_IDF(tfidf);
-    // ## TODO: make Naive Bayes
+    test(temp->rows, df->size);
+    test(temp->cols, tfidf->hash->size);
+    test(tfidf->tf_idf_matrix->size, tfidf->hash->size);
+
+    // ## TODO: should smote_oversample before fit model
+    func_printf("Naive Bayes phase\n");
+    Naive_Bayes_OJ* nb = createNaive_Bayes(df, tfidf->hash);
+    fitNB(nb, tfidf, df);
+    printNaive_Bayes(nb);
+    getlikelihood_to_file(nb, "assets/likelihood.txt");
     // ## TODO: try predict
+    func_printf("Predict phase\n");
+
     // ## TODO: review accuracy
-    printf("Free phase\n");
+    func_printf("Accuracy phase\n");
+
+    // free memory
+    func_printf("Free phase\n");
     freeDataFrame(df);
     freeTF_IDF(tfidf);
-    // freeWordHash(ngram);
-    // freeArrayString(ngram_word, size_ngram);
+    freeNaive_Bayes(nb);
     return 0;
 }

@@ -53,7 +53,7 @@ char covert_to_eng(const char* str){
     return base_char;
 }
 
-int isStillWordEnlishIfConver(char * str){
+inline __attribute__((always_inline)) int isStillWordEnlishIfConver(char * str){
     // check if is digit
     if(isdigit(*str)){
         return 0;

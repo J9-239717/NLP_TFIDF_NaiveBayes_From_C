@@ -8,6 +8,7 @@
 
 extern char* label[]; // label name
 
+char* getLabel(int index);
 int countword(const char* str,char delim);
 void parseVocab(const char* str,int n,char* delim,char** result);
 int countLine(char* filename);
