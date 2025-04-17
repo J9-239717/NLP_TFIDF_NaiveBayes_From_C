@@ -231,7 +231,6 @@ void parseVocab(const char* str,int n,char* delim,char** result){
         temp = strtok_r(NULL,delim,&saveptr);
         i++;
     }
-    printf("\n");
 }
 
 // countline in file

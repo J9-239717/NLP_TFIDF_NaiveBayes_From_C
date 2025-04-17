@@ -71,6 +71,20 @@ typedef struct {
     int cols;
 } sparse_matrix;
 
+typedef struct{
+    float* values;
+    int* col_index;
+    int* row_ptr;
+    int rows,cols,nnz; // number of non-zero elements
+}csr_matrix; // compressed sparse row matrix
+
+typedef struct{
+    float* values;
+    int* row_index;
+    int* col_ptr;
+    int rows,cols,nnz; // number of non-zero elements
+}csc_matrix; // compressed sparse column matrix
+
 typedef struct _TF_IDF_OBJECT{
     data_frame* df; // document for train
     word_hash* hash; // hash table for vocab

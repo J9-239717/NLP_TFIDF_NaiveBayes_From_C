@@ -8,7 +8,8 @@
         "sparse_matrix.h": "c",
         "import.h": "c",
         "log_print.h": "c",
-        "checktime.h": "c"
+        "checktime.h": "c",
+        "naive_bayes.h": "c"
     },
     "todo-tree.tree.showCountsInTree": true
 }

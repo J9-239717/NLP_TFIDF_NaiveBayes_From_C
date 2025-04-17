@@ -150,9 +150,6 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
         error_printf("Naive Bayes or TF-IDF object is NULL\n");
         return -1;
     }
-    info_printf("Fit Naive Bayes model\n");
-    func_printf("Find sigma F(i,C) phase\n");
-    start_timer();
     int n = tf_idf->tf_idf_matrix->size;
     int vocab_size = tf_idf->hash->size;
     int index_ = 0;
@@ -172,13 +169,7 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
         // calculate sigma P(fi,y)
         nb->likelihood[index_] += (float) tf_idf->tf_idf_matrix->data[i].value;
     }
-    show_time();
-    if(DEBUG){
-        getlikelihood_to_file_csv(nb, "assets/debug_likelihood_before_calculate.csv");
-        getlikelihood_to_file(nb, "assets/debug_likelihood_before_calculate.txt");
-    }
-    func_printf("Calculate P(Fi,C) = log(sigma F(i,C) / sigma F(all,C)) phase\n");
-    start_timer();
+
     float sum_class;
     int row = 0;
     while(row < nb->num_classes){
@@ -194,7 +185,6 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
         }
         // sigma F(all,C) + ALPHA * vocab_size
         sum_class += ALPHA * vocab_size; // Laplace smoothing
-        info_printf("Sum class %d: %f\n", row, sum_class);
         for(int j = 0; j < vocab_size; j++){
             int index = index(row, j, vocab_size);
             if(index < 0 || index >= nb->num_classes * vocab_size){
@@ -207,7 +197,57 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
         }
         row++;
     }
-    show_time();
-    info_printf("Naive Bayes model fitted successfully\n");
+    return 0;
+}
+
+void add_vector_to_matrix(float** matrix, int rows, int cols, float* vector, int vector_size) {
+    if(rows <= 0 || cols <= 0 || vector_size <= 0) {
+        error_printf("Invalid matrix or vector size\n");
+        return;
+    }
+    if(vector_size != cols) {
+        error_printf("Vector size %d does not match matrix columns %d\n", vector_size, cols);
+        return;
+    }
+    for(int i = 0; i < rows; i++) {
+        for(int j = 0; j < cols; j++) {
+            matrix[i][j] += vector[j];
+        }
+    }
+}
+
+// ## TODO: not finish yet add + with P(C)
+int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf,char* file_predict) {
+    FILE* file = fopen(file_predict, "w");
+    if (!file) {
+        error_printf("Cannot open file %s\n", file_predict);
+        return -1;
+    }
+    csr_matrix* test_mt = to_csr(tf_idf->tf_idf_matrix);
+    csr_matrix* train_mt = flat_mt_to_csr(model->likelihood, model->num_classes, model->vocab_size);
+    csr_matrix* train_mt_t = csr_transpose(train_mt);
+    csc_matrix* train_mt_csc_t = covert_to_csc(train_mt_t);
+    // predict the class for each test sample
+    float** result = csr_x_csc_to_dense(test_mt, train_mt_csc_t);
+    add_vector_to_matrix(result, test_mt->rows, train_mt_csc_t->cols, model->prior, model->num_classes);
+    int rows = test_mt->rows;
+    int cols = train_mt_csc_t->cols;
+    for(int i = 0; i < rows; i++){
+        int max_index = 0;
+        float max_value = result[i][0];
+        for(int j = 1; j < cols; j++){
+            if(result[i][j] > max_value){
+                max_value = result[i][j];
+                max_index = j;
+            }
+        }
+        fprintf(file,"%d ", max_index);
+    }
+    free_dense_matrix(result, rows);
+    free_csr_matrix(test_mt);
+    free_csr_matrix(train_mt);
+    free_csr_matrix(train_mt_t);
+    free_csc_matrix(train_mt_csc_t);
+    fclose(file);
     return 0;
 }
