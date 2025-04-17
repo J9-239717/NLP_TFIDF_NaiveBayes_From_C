@@ -57,3 +57,5 @@ dkms.conf
 /cmake-build-debug
 assets/Train_Data_test.csv
 assets/debug_wordhash.txt
+try
+test_sm.c
