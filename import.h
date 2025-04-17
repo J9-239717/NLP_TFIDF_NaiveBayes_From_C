@@ -13,9 +13,11 @@
 #define ALPHA 1
 #define max(a,b) ((a) > (b) ? (a) : (b))
 
+// if you build model to run with python, you need to change assets to file
 #define STOPWORDFILE "assets/stopword.txt"
 //#define STOPWORDFILE "D:\\TestC_AI\\NLP_TFIDF_NaiveBayes_From_C\\assets\\stopword.txt"
 
+// if you build model to run with python, you need to change assets to file
 #define NOISEFILE "assets/noise.txt"
 //#define NOISEFILE "D:\\TestC_AI\\NLP_TFIDF_NaiveBayes_From_C\\assets\\noise.txt"
 #define test(a,b) do{\

@@ -229,7 +229,7 @@ csr_matrix* csr_transpose(csr_matrix* ori){
         int start = ori->row_ptr[slide];
         int end = ori->row_ptr[slide + 1];
         for(int i = start; i < end; i++){
-            int value = ori->values[i];
+            float value = ori->values[i];
             int new_row = ori->col_index[i];
             int new_row_ptr = csr->row_ptr[new_row] + current_row_ptr[new_row]++;
 
@@ -280,7 +280,7 @@ csc_matrix* covert_to_csc(csr_matrix* ori){
         int start = ori->row_ptr[slide];
         int end = ori->row_ptr[slide + 1];
         for(int i = start; i < end; i++){
-            int value = ori->values[i];
+            float value = ori->values[i];
             int new_col = ori->col_index[i];
             int new_col_ptr = csc->col_ptr[new_col] + current_col_ptr[new_col]++;
 
@@ -432,35 +432,28 @@ void print_csc(csc_matrix* csc) {
 }
 
 // ## TODO: try to debug this lower function
-
-/* =====  ดอทโปรดักต์ แถว‑คอลัมน์  ===== */
 static inline float dot_csr_row_csc_col(const csr_matrix *A, int row,const csc_matrix *B, int col)
 {
     int pa = A->row_ptr[row];
     int pa_end = A->row_ptr[row + 1];
-
     int pb = B->col_ptr[col];
     int pb_end = B->col_ptr[col + 1];
-
     float sum = 0.0f;
-
     while (pa < pa_end && pb < pb_end) {
-        int ia = A->col_index[pa];   /* ดัชนีคอลัมน์ของ A */
-        int ib = B->row_index[pb];   /* ดัชนีแถวของ B (= คอลัมน์ของ A) */
-
+        int ia = A->col_index[pa];   
+        int ib = B->row_index[pb];   
         if (ia == ib) {
             sum += A->values[pa] * B->values[pb];
             ++pa; ++pb;
         } else if (ia < ib) {
             ++pa;
-        } else { /* ia > ib */
+        } else {
             ++pb;
         }
     }
     return sum;
 }
 
-/* =====  คูณ CSR × CSC → เมทริกซ์เดนส์  ===== */
 float **csr_x_csc_to_dense(const csr_matrix *A, const csc_matrix *B){
     if (!A || !B) {
         fprintf(stderr, "NULL matrix pointer.\n");
@@ -471,7 +464,6 @@ float **csr_x_csc_to_dense(const csr_matrix *A, const csc_matrix *B){
         return NULL;
     }
 
-    /* จองผลลัพธ์เป็น 2‑D (rows × cols) */
     float **C = (float **)malloc(A->rows * sizeof(float *));
     if (!C) {
         perror("malloc");
@@ -481,20 +473,18 @@ float **csr_x_csc_to_dense(const csr_matrix *A, const csc_matrix *B){
     for (int i = 0; i < A->rows; ++i) {
         C[i] = (float *)calloc(B->cols, sizeof(float));
         if (!C[i]) { 
-            perror("calloc"); /* free ที่จองมาก่อนหน้า */
+            perror("calloc");
             for (int k = 0; k < i; ++k) free(C[k]);
             free(C);
             return NULL;
         }
     }
-
-    /* คำนวณแต่ละ (i,j) */
     for (int i = 0; i < A->rows; ++i) {
         for (int j = 0; j < B->cols; ++j) {
             C[i][j] = dot_csr_row_csc_col(A, i, B, j);
         }
     }
-    return C; /* ผู้เรียกต้อง free ภายหลัง */
+    return C;
 }
 
 // !!should check dont have any 0 value in flat matrix

@@ -12,8 +12,9 @@ int compute_idf(TF_IDF_OJ* tfidf,int alpha);
 sparse_matrix* compute_tf_idf(sparse_matrix* tf_matrix,float* idf_vector,int size_vector);
 sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram);
 sparse_matrix* fit_transform(TF_IDF_OJ* tfidf,int ngram);
-sparse_matrix* transform(TF_IDF_OJ* original,data_frame* df,int ngram);
+TF_IDF_OJ* transform(TF_IDF_OJ* original,data_frame* df,int ngram);
 void freeTF_IDF(TF_IDF_OJ* tfidf);
 void printTF_IDF(TF_IDF_OJ* tfidf);
+void fit_tfidf(TF_IDF_OJ* tfidf,int ngram);
 
 #endif
