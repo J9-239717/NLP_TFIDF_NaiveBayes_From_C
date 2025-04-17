@@ -496,3 +496,41 @@ float **csr_x_csc_to_dense(const csr_matrix *A, const csc_matrix *B){
     }
     return C; /* ผู้เรียกต้อง free ภายหลัง */
 }
+
+// !!should check dont have any 0 value in flat matrix
+// this function not handle 0 value in matrix
+// if have 0 value in matrix, it will store in csr matrix
+// and it will be wrong with sparse matrix to not store 0 values
+csr_matrix* flat_mt_to_csr(float* arrayMT,int rows,int cols){
+    csr_matrix* csr = (csr_matrix*)malloc(sizeof(csr_matrix));
+    checkExistMemory(csr);
+    
+    // intialize the CSR matrix size
+    csr->rows = rows;
+    csr->cols = cols;
+    csr->nnz = rows * cols;
+
+    // allocate memory for the CSR matrix
+    csr->values = (float*)malloc(csr->nnz * sizeof(float));
+    csr->col_index = (int*)malloc(csr->nnz * sizeof(int));
+    csr->row_ptr = (int*)calloc((rows + 1) ,sizeof(int));
+    checkExistMemory(csr->values);
+    checkExistMemory(csr->col_index);
+    checkExistMemory(csr->row_ptr);
+
+    // 1. Count non-zero elements in each row
+    for(int i = 0; i < rows; i++){
+        csr->row_ptr[i + 1] = cols;
+        for(int j = 0; j < cols; j++){
+            int index = index(i,j,cols);
+            csr->values[index] = arrayMT[index];
+            csr->col_index[index] = j;
+        }
+    }
+
+    for(int i = 0; i < rows; i++){
+        csr->row_ptr[i + 1] += csr->row_ptr[i];
+    }
+
+    return csr;
+}

@@ -211,3 +211,8 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
     info_printf("Naive Bayes model fitted successfully\n");
     return 0;
 }
+
+int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf) {
+    csr_matrix* test_mt = to_csr(tf_idf->tf_idf_matrix);
+    csr_matrix* train_mt;
+}

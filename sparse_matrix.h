@@ -5,6 +5,8 @@
 #include "structure_data.h"
 #include "wordhash.h"
 
+#define index(i,j,cols) ((i)*(cols)+(j)) // cols is size of vocab
+
 sparse_matrix* createSparseMatrix(int initial_capacity,int rows, int cols);
 int add_entry(sparse_matrix* matrix, int row, int col, float new_value);
 int delete_entry(sparse_matrix* matrix, int row, int col);
@@ -25,5 +27,6 @@ void print_csc(csc_matrix* csc);
 void print_csr(csr_matrix* csr);
 csc_matrix* covert_to_csc(csr_matrix* ori);
 float **csr_x_csc_to_dense(const csr_matrix *A, const csc_matrix *B);
+csr_matrix* flat_mt_to_csr(float* arrayMT,int rows,int cols);
 
 #endif

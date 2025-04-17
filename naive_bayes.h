@@ -6,7 +6,6 @@
 #include "wordhash.h"
 #include "sparse_matrix.h"
 
-#define index(i,j,cols) ((i)*(cols)+(j)) // cols is size of vocab
 
 Naive_Bayes_OJ* createNaive_Bayes(data_frame* df, word_hash* hash);
 void freeNaive_Bayes(Naive_Bayes_OJ* nb);
