@@ -1,4 +1,4 @@
-#include "sparse_matrix.h"
+#include "h_files/sparse_matrix.h"
 
 sparse_matrix* createSparseMatrix(int initial_capacity,int rows, int cols){
     sparse_matrix* matrix = (sparse_matrix*)malloc(sizeof(sparse_matrix));

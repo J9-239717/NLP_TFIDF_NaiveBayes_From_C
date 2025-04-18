@@ -1,4 +1,4 @@
-#include "TFIDF.h"
+#include "h_files/TFIDF.h"
 
 // this function is used to create TF_IDF_OJ struct
 // it will create a new TF_IDF_OJ struct and initialize it

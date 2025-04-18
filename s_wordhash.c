@@ -1,4 +1,4 @@
-#include "wordhash.h"
+#include "h_files/wordhash.h"
 
 word_node_pool* createWordNodePool() {
     word_node_pool* pool = malloc(sizeof(word_node_pool));

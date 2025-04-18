@@ -1,6 +1,6 @@
-#include "dataframe.h"
-#include "TFIDF.h"
-#include "naive_bayes.h"
+#include "h_files/dataframe.h"
+#include "h_files/TFIDF.h"
+#include "h_files/naive_bayes.h"
 
 void freeArrayString(char** src,int size){
     if(!src) return;
