@@ -389,22 +389,24 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
 
     // Handle the last line
     buffer[count] = '\0';
+    buffer[strcspn(buffer, "\n\r")] = '\0';
     max_size = (count > max_size) ? count : max_size;
-    char* ptr = NULL;
-    char* text = parseString(buffer, ",", &ptr);
-    if(!remove_punctuation(text)){
-        fprintf(stderr, "Error removing punctuation\n");
-        free(buffer);
-        return -1;
-    }
-    char* label = parseString(ptr, ",", &ptr);
-    df->data[df->size].text = strdup(text);
-    df->data[df->size].label = strdup(label);
+    // parse label first
+    df->data[df->size].label = parseStringEnd(buffer, ",");
     if(!addLabelFrequency(df, df->data[df->size].label)){
         fprintf(stderr, "Error adding label frequency\n");
         free(buffer);
         return -1;
     }
+
+    // parse text
+    if(!remove_punctuation(buffer)){
+        fprintf(stderr, "Error removing punctuation\n");
+        free(buffer);
+        return -1;
+    }
+    char* text = remove_stop_word(buffer, stopword, size_stopword);
+    df->data[df->size].text = text;
     df->data[df->size].count_word = countword(text, ' ');
     df->size++;
     
