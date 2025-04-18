@@ -1,4 +1,4 @@
-#include "naive_bayes.h"
+#include "h_files/naive_bayes.h"
 
 Naive_Bayes_OJ* createNaive_Bayes(data_frame* df, word_hash* hash) {
     Naive_Bayes_OJ* nb = (Naive_Bayes_OJ*)malloc(sizeof(Naive_Bayes_OJ));
