@@ -44,7 +44,8 @@ int main(int argc, char* argv[]){
     char* filetest = argv[2];
     char* filerealout = argv[3];
     char* fileout = argv[4];
-
+    printf("File Train: %s\n",filetrian);
+    
     // data frame trian set
     info_printf("Data Frame Train Set Create\n");
     start_timer();
