@@ -153,8 +153,6 @@ int main(int argc, char* argv[]){
     TF_IDF_OJ* tfidf_test = transform(tfidf_train,df_test,ngram);
     show_time();
 
-    // ## TODO: should smote_oversample before fit model
-
     // fit model and predict
     info_printf("Naive Bayes Train and Predict\n");
     start_timer();

@@ -216,7 +216,6 @@ void add_vector_to_matrix(float** matrix, int rows, int cols, float* vector, int
     }
 }
 
-// ## TODO: not finish yet add + with P(C)
 int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf,char* file_predict) {
     FILE* file = fopen(file_predict, "w");
     if (!file) {

@@ -282,7 +282,7 @@ char* parseString(char* str, char* delim,char** ptr) {
 char* parseStringEnd(char* str, char* delim) {
     char* rt = NULL;
     size_t start_size = 1024;
-    rt = (char*)malloc(sizeof(char) * start_size); // ## FIXME: should using string pool it not much memory but it's so make cpu call many system call
+    rt = (char*)malloc(sizeof(char) * start_size);
     if(!rt){
         fprintf(stderr, "Memory allocation failed\n");
         return NULL;

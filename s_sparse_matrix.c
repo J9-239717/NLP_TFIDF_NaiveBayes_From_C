@@ -431,7 +431,6 @@ void print_csc(csc_matrix* csc) {
     printf("\n");
 }
 
-// ## TODO: try to debug this lower function
 static inline float dot_csr_row_csc_col(const csr_matrix *A, int row,const csc_matrix *B, int col)
 {
     int pa = A->row_ptr[row];
