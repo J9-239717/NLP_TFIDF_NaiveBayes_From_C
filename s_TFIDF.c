@@ -13,7 +13,7 @@ TF_IDF_OJ* createTF_IDF(data_frame* df){
     return tfidf;
 }
 int build_vocab(TF_IDF_OJ* tfidf,int ngram){
-    tfidf->hash = WordHashWithNgram(tfidf->df, ngram);
+    tfidf->hash = WordHashWithNgram_MultiThread(tfidf->df, ngram);
     // writeWordHashToFile(tfidf->hash, "assets/debug_hash_word_tfidf.txt");
     checkExistMemory(tfidf->hash);
     return tfidf->hash->size;

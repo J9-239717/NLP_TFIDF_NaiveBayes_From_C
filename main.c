@@ -81,7 +81,7 @@ int main(int argc, char* argv[]){
         printf("Usage: %s <file-Trian> <file-test-set> <file-real-test> <file-out-put-predict>\n",argv[0]);
         return 1;
     }
-    info_printf("Start Program Try thread\n");
+    info_printf("create data frame and noise word\n");
     start_timer();
     char* filetrian = argv[1];
     char* filetest = argv[2];
