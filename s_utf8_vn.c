@@ -17,11 +17,33 @@ ToneMapping viet_mapping_eng[] = {
     {"ý", 'y'}, {"ỳ", 'y'}, {"ỷ", 'y'}, {"ỹ", 'y'}, {"ỵ", 'y'}
 };
 
+ToneMapping viet_mapping_eng_upper[] = {
+    {"Â", 'A'}, {"Ă", 'A'}, {"Ê", 'E'}, {"Ô", 'O'}, {"Ơ", 'O'}, {"Ư", 'U'}, {"Đ", 'D'},
+    {"Á", 'A'}, {"À", 'A'}, {"Ả", 'A'}, {"Ã", 'A'}, {"Ạ", 'A'},
+    {"Ấ", 'A'}, {"Ầ", 'A'}, {"Ẩ", 'A'}, {"Ẫ", 'A'}, {"Ậ", 'A'},
+    {"Ắ", 'A'}, {"Ằ", 'A'}, {"Ẳ", 'A'}, {"Ẵ", 'A'}, {"Ặ", 'A'},
+    {"É", 'E'}, {"È", 'E'}, {"Ẻ", 'E'}, {"Ẽ", 'E'}, {"Ẹ", 'E'},
+    {"Ế", 'E'}, {"Ề", 'E'}, {"Ể", 'E'}, {"Ễ", 'E'}, {"Ệ", 'E'},
+    {"Í", 'I'}, {"Ì", 'I'}, {"Ỉ", 'I'}, {"Ĩ", 'I'}, {"Ị", 'I'},
+    {"Ó", 'O'}, {"Ò", 'O'}, {"Ỏ", 'O'}, {"Õ", 'O'}, {"Ọ", 'O'},
+    {"Ố", 'O'}, {"Ồ", 'O'}, {"Ổ", 'O'}, {"Ỗ", 'O'}, {"Ộ", 'O'},
+    {"Ớ", 'O'}, {"Ờ", 'O'}, {"Ở", 'O'}, {"Ỡ", 'O'}, {"Ợ", 'O'},
+    {"Ú", 'U'}, {"Ù", 'U'}, {"Ủ", 'U'}, {"Ũ", 'U'}, {"Ụ", 'U'},
+    {"Ứ", 'U'}, {"Ừ", 'U'}, {"Ử", 'U'}, {"Ữ", 'U'}, {"Ự", 'U'},
+    {"Ý", 'Y'}, {"Ỳ", 'Y'}, {"Ỷ", 'Y'}, {"Ỹ", 'Y'}, {"Ỵ", 'Y'}
+};
+
+
 // Function to find the base character of a Vietnamese character
 char get_base_telex(const char* c) {
     for(int i = 0; i < TONE_MAPPING_SIZE; i++){
         if(strcmp(viet_mapping_eng[i].viet_char,c) == 0){
             return viet_mapping_eng[i].base_char;
+        }
+    }
+    for(int i = 0; i < TONE_MAPPING_SIZE; i++){
+        if(strcmp(viet_mapping_eng_upper[i].viet_char,c) == 0){
+            return viet_mapping_eng_upper[i].base_char;
         }
     }
     return '\0';
