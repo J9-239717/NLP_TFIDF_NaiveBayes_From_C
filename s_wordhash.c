@@ -134,20 +134,19 @@ inline __attribute__((always_inline)) char getIndexHashWord(char* word){
     // key is first char
     char temp = covert_to_eng(word);
     if(temp == '\0'){
-        fprintf(stderr, "Invalid character in word: %s is \\0 in line: %d in file: %s\n", word, __LINE__, __FILE__);
+        error_printf("Invalid character in word: %s is \\0 in line: %d in file: %s\n", word, __LINE__, __FILE__);
         exit(EXIT_FAILURE);
     }
 
     // if is digit pass
     if(isdigit(temp)){
-        fprintf(stderr, "Invalid character in word: %s is digit in line: %d in file: %s\n", word, __LINE__, __FILE__);
+        error_printf("Invalid character in word: %s is digit in line: %d in file: %s\n", word, __LINE__, __FILE__);
         return -1; // Invalid index for digits
     }
 
     index = tolower(temp) - 'a';
     if(index < 0 || index >= WORD_HASH_SIZE){
-        fprintf(stderr, "Index out of bounds for word: %s\n", word);
-        return -1; // Invalid index
+        return INVALID_DATA_INDEX; // Invalid index
     }
     return index;
 }
@@ -162,7 +161,7 @@ word_node* isExistWordHash(word_hash* hash, char* word){
     char index = getIndexHashWord(word);
     if(index == -1){
         fprintf(stderr, "Invalid index for word: %s in line:%d from file: %s\n", word, __LINE__, __FILE__);
-        exit(EXIT_FAILURE); // Invalid index
+        exit(EXIT_FAILURE); // Error index
     }
 
     word_node* current = hash->table[index];
@@ -185,8 +184,8 @@ void push_word(word_hash* dest,char* word){
     char index = getIndexHashWord(word);
 
     if(index == -1){
-        // pass digit
-        return; // Invalid index for digits
+        // pass error index
+        return;
     }
 
     // check if word is already in hash table
@@ -251,7 +250,7 @@ word_node* pop_word(word_hash* hash, char* word){
     }
     char index = getIndexHashWord(word);
     if(index == -1){
-        return NULL; // Invalid index
+        return NULL; // Error index
     }
     word_node* current = hash->table[index];
     word_node* prev = NULL;
@@ -636,7 +635,7 @@ inline __attribute__((always_inline)) int getIndexOfWord(word_hash* hash, char* 
     }
     char index = getIndexHashWord(word);
     if(index == -1){
-        return -1; // Invalid index
+        return -1; // Error index
     }
     word_node* current = hash->table[index];
     int i = 0;

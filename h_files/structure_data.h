@@ -50,8 +50,8 @@ typedef struct _word_node_pool{
 }word_node_pool;
 
 typedef struct _word_hash{
-    word_node* table[26]; // array store word a - z
-    int size_each[26]; // size of each hash table a - z
+    word_node* table[27]; // array store word a - z and slot for invalid data
+    int size_each[27]; // size of each hash table a - z and slot for invalid data
     int size; // size of hash table
     StringPool* str_pool; // string pool
     word_node_pool* node_pool; // node pool

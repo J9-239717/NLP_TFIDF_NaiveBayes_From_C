@@ -6,10 +6,11 @@
 #include "utf8_vn.h"
 #include "string_pool.h"
 
-#define WORD_HASH_SIZE 26
+#define WORD_HASH_SIZE 27 // 26 letters + 1 for invalid data
 #define INITAL_WORD_HASH_SIZE_POOL 10000
 #define BLOCK_SIZE_WORD_HASH 3
 
+enum {INVALID_DATA_INDEX = 26}; // invalid data
 
 word_hash* WordHash(data_frame* df);
 void printWordHash(word_hash* hash);
