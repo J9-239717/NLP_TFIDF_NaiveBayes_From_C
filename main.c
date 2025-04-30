@@ -132,6 +132,7 @@ int main(int argc, char* argv[]){
     data_frame* df_train = data_train->df;
     data_frame* df_test = data_test->df;
     word_hash* noise_hash = data_noise->hash;
+    write_test_pre_answer_to_file(df_test, filerealout);
     char** noise_word = data_noise->word;
     int size_noise = data_noise->size_word;
     free(data_train);
