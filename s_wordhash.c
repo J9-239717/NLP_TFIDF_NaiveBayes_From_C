@@ -546,14 +546,7 @@ word_hash* WordHashWithNgram_MultiThread(data_frame* df,int n){
             data[i].hash = NULL;
         }
     }
-    // check if not merge all hash to hash
-    for (int i = 0; i < thread_count; i++) {
-        if (data[i].hash) {
-            merge_wordhash(hash, data[i].hash);
-            freeWordHash(data[i].hash);
-            data[i].hash = NULL;
-        }
-    }
+    // All hashes are merged in the first loop; no need for a second loop.
     return hash;
 }
 
