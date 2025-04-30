@@ -1,5 +1,13 @@
 #include "h_files/wordhash.h"
 
+typedef struct _thread_pack_{
+    int start;
+    int end;
+    word_hash* hash;
+    data_frame* global_df;
+    int ngram;
+}thread_pack_word_hash;
+
 word_node_pool* createWordNodePool() {
     word_node_pool* pool = malloc(sizeof(word_node_pool));
     checkExistMemory(pool);
@@ -453,6 +461,93 @@ void push_ngram(word_hash* dest, char** tokens, int token_count, int n) {
         }
         push_word(dest, ngram);
     }
+}
+
+word_hash* merge_wordhash(word_hash* dest, word_hash* src) {
+    if (!dest || !src) {
+        fprintf(stderr, "Destination or source hash table is NULL\n");
+        return NULL;
+    }
+    for (int i = 0; i < WORD_HASH_SIZE; i++) {
+        word_node* current = src->table[i];
+        while (current) {
+            push_word(dest, current->word);
+            current = current->next;
+        }
+    }
+    return dest;
+}
+
+void* unit_wordhash_with_ngarm(void* arg){
+    thread_pack_word_hash* data = (thread_pack_word_hash*)arg;
+    word_hash* hash = createWordHash();
+    checkExistMemory(hash);
+    StringPool* str_p = create_string_pool();
+    checkExistMemory(str_p);
+    char* tokens[1000]; // max 1000 tokens
+    char token_buffer[128];
+    char *save_ptr = NULL;
+    int token_count = 0;
+
+    for(int i = data->start; i < data->end; i++){
+        char* text = data->global_df->data[i].text;
+        if (!text) continue;
+
+        save_ptr = text;
+        token_count = 0;
+
+        while (*save_ptr != '\0') {
+            tokenize(save_ptr, token_buffer, ' ', &save_ptr);
+            if (token_buffer[0] == '\0') break; // No more tokens
+
+            if (isStillWordEnlishIfConver(token_buffer)) {
+                tokens[token_count++] = str_pool_alloc(str_p, token_buffer);
+            }
+        }
+
+        // push unigram
+        for (int k = 0; k < token_count; k++) {
+            push_word(hash, tokens[k]);
+        }
+
+        // push n-gram (e.g., bigram or trigram)
+        if (data->ngram > 1) {
+            push_ngram(hash, tokens, token_count, data->ngram);
+        }
+        reset_string_pool(str_p);
+    }
+    destroy_string_pool(str_p);
+    data->hash = hash;
+}
+
+word_hash* WordHashWithNgram_MultiThread(data_frame* df,int n){
+    if (!df) return NULL;
+    word_hash* hash = createWordHash();
+    checkExistMemory(hash);
+    int size = df->size;
+    int thread_count = 4; // Number of threads to use
+    pthread_t threads[thread_count];
+    thread_pack_word_hash data[thread_count];
+    int chunk_size = size / thread_count;
+
+    for (int i = 0; i < thread_count; i++) {
+        data[i].start = i * chunk_size;
+        data[i].end = (i == thread_count - 1) ? size : (i + 1) * chunk_size;
+        data[i].hash = NULL;
+        data[i].global_df = df;
+        data[i].ngram = n;
+        pthread_create(&threads[i], NULL, unit_wordhash_with_ngarm, &data[i]);
+    }
+    for (int i = 0; i < thread_count; i++) {
+        pthread_join(threads[i], NULL);
+        if (data[i].hash) {
+            merge_wordhash(hash, data[i].hash);
+            freeWordHash(data[i].hash);
+            data[i].hash = NULL;
+        }
+    }
+    // All hashes are merged in the first loop; no need for a second loop.
+    return hash;
 }
 
 // Make N gram from data frame

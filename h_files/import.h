@@ -6,6 +6,7 @@
 #include<string.h>
 #include<ctype.h>
 #include <math.h>
+#include <pthread.h>
 #include "checktime.h"
 #include "log_print.h"
 
