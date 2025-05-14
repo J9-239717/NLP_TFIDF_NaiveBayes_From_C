@@ -101,7 +101,7 @@ int main(int argc, char* argv[]){
             fclose(f);
         }
     }else{
-        info_printf("File noise word is not .txt file or something invalide ( program will cancel noise ) \n");
+        info_printf("The noise word file is either not a .txt file or is invalid. Noise processing will be skipped.\n");
         fileNoise = NULL;
     }
     
