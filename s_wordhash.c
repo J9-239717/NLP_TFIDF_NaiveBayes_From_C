@@ -215,7 +215,7 @@ void push_word(word_hash* dest,char* word){
 // Free the word hash table
 void freeWordHash(word_hash* hash){
     if(!hash){
-        fprintf(stderr, "Hash table is NULL\n");
+        error_printf("Hash table is NULL from Free Word Hash\n");
         return;
     }
     destroy_string_pool(hash->str_pool);
@@ -495,7 +495,7 @@ void* unit_wordhash_with_ngarm(void* arg){
         save_ptr = text;
         token_count = 0;
 
-        while (*save_ptr != '\0') {
+        while (save_ptr != NULL && *save_ptr != '\0') {
             tokenize(save_ptr, token_buffer, ' ', &save_ptr);
             if (token_buffer[0] == '\0') break; // No more tokens
 
@@ -572,7 +572,7 @@ word_hash* WordHashWithNgram(data_frame* df, int n) {
         save_ptr = text;
         token_count = 0;
 
-        while (*save_ptr != '\0') {
+        while (save_ptr != NULL && *save_ptr != '\0') {
             tokenize(save_ptr, token_buffer, ' ', &save_ptr);
             if (token_buffer[0] == '\0') break; // No more tokens
 
