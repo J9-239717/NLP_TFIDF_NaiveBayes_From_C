@@ -79,7 +79,7 @@ void* get_noise(void* arg){
 
 int main(int argc, char* argv[]){
     if(argc != 7){
-        printf("Usage: %s <file-Trian> <file-test-set> <file-real-test> <file-out-put-predict> <file-stop-word> <file-noise> \n",argv[0]);
+        printf("Usage: %s <file-Train> <file-test-set> <file-real-test> <file-out-put-predict> <file-stop-word> <file-noise> \n",argv[0]);
         return 1;
     }
     info_printf("create data frame and noise word\n");
