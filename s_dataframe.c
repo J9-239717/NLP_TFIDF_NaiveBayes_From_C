@@ -329,13 +329,13 @@ void removeChar(char* str, char c){
 // dynamic parse string to data_frame
 // warning: should allocate array string first
 // return max size of string in file
-int dynamic_parse_string(FILE* file, data_frame* df) {
+int dynamic_parse_string(FILE* file, data_frame* df,char* file_stopword) {
     int start_size = 1024 * 1024;
     char* buffer = (char*)malloc(sizeof(char) * start_size);
     checkExistMemory(buffer);
     char *start_p = buffer;
     int size_stopword = 0;
-    char **stopword = load_stop_word(STOPWORDFILE, &size_stopword);
+    char **stopword = load_stop_word(file_stopword, &size_stopword);
     if (!stopword) {
         fprintf(stderr, "Error loading stop words\n");
         free(buffer);
@@ -418,7 +418,7 @@ int dynamic_parse_string(FILE* file, data_frame* df) {
 
 // main function of data frame
 // read file to data frame
-int readFiletoDataFrame(FILE* file, data_frame* data_frame,int line){
+int readFiletoDataFrame(FILE* file, data_frame* data_frame,int line,char* file_stopword){
     char buffer[1024];
 
     if(!file){
@@ -450,7 +450,7 @@ int readFiletoDataFrame(FILE* file, data_frame* data_frame,int line){
 
     // parse data and label
     data_frame->size = 0;
-    dynamic_parse_string(file,data_frame);
+    dynamic_parse_string(file,data_frame,file_stopword);
     return 0;
 }
 
@@ -635,7 +635,7 @@ int isNumber(char* str) {
     return 0;
 }
 
-int remove_noise_in_dataframe(data_frame* df, word_hash* hash, int freq_threshold){
+int remove_noise_in_dataframe(data_frame* df, word_hash* hash, int freq_threshold,char* file_stopword){
     if (!df){
         fprintf(stderr, "Invalid data frame\n");
         return -1;
@@ -651,7 +651,7 @@ int remove_noise_in_dataframe(data_frame* df, word_hash* hash, int freq_threshol
     }
 
     int stopword_size = 0;
-    char **stopwords = load_stop_word(STOPWORDFILE, &stopword_size);
+    char **stopwords = load_stop_word(file_stopword, &stopword_size);
     if (!stopwords) {
         fprintf(stderr, "Error loading stop words\n");
         return -1;
