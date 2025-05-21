@@ -78,8 +78,10 @@ void* get_noise(void* arg){
 }
 
 int main(int argc, char* argv[]){
-    if(argc != 7){
-        printf("Usage: %s <file-Train> <file-test-set> <file-real-test> <file-out-put-predict> <file-stop-word> <file-noise> \n",argv[0]);
+    if(argc != 9){
+        printf("Usage: %s <file-Train> <file-test-set> <file-real-test> <file-out-put-predict> <file-stop-word> <file-noise> <num-of-ngram> <op>\n",argv[0]);
+        printf("for op = c_n is get noise word from freq <= n; n is should Number and write to file in directory run this program "
+                "   op = null or other for run normally \n");
         return 1;
     }
     info_printf("create data frame and noise word\n");
@@ -90,6 +92,18 @@ int main(int argc, char* argv[]){
     char* fileout = argv[4];
     char* fileStopWord = argv[5];
     char* fileNoise = argv[6];
+    if(isdigit(argv[7][0]) == 0){
+        error_printf("The ngram must be a number\n");
+        return 1;
+    }
+    int ngram = atoi(argv[7]);
+    if(argv[8][0] == 'c' && argv[8][1] == '_'){
+        if(isdigit(argv[8][2]) == 0){
+            error_printf("c_n: n is should a number\n");
+            return 1;
+        }
+        goto getNoise;
+    }
 
     // check noise word
     if(strstr(fileNoise,".txt") != NULL){
@@ -178,7 +192,6 @@ int main(int argc, char* argv[]){
     info_printf("TFIDF Train And Transform\n");
     start_timer();
     TF_IDF_OJ* tfidf_train = createTF_IDF(df_train);
-    int ngram = 2;
     info_printf("TFIDF ngram = %d\n",ngram);
     fit_tfidf(tfidf_train, ngram);
     TF_IDF_OJ* tfidf_test = transform(tfidf_train,df_test,ngram);
@@ -203,5 +216,31 @@ int main(int argc, char* argv[]){
     freeTF_IDF(tfidf_train);
     freeTF_IDF(tfidf_test);
     freeNaive_Bayes(nb);
+    if(0){
+        getNoise:
+        info_printf("Get Noise Word from low frequency\n");
+        int n = atoi(argv[8]+2);
+        FILE* file = fopen(filetrian,"r");
+        if(file == NULL){
+            fprintf(stderr, "Cannot open file %s\n", filetrian);
+            return 1;
+        }
+        int line_count = countLine(filetrian);
+        data_frame* df = createDataFrame();
+        readFiletoDataFrame(file,df,line_count,fileStopWord);
+        word_hash* hash = WordHashWithNgram_MultiThread(df, 1);
+        word_hash* noise = smooth_word(hash, n);
+        if(noise == NULL){
+            fprintf(stderr, "Cannot get noise word\n");
+            freeDataFrame(df);
+            freeWordHash(hash);
+            return 1;
+        }
+        writeWordHashToFile(noise, "noise.txt");
+        freeWordHash(noise);
+        freeWordHash(hash);
+        freeDataFrame(df);
+        fclose(file);
+    }
     return 0;
 }

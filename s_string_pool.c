@@ -1,6 +1,6 @@
 #include "h_files/string_pool.h"
 
-#define INITIAL_STRING_POOL_SIZE 1024*1024 // 1MB
+#define INITIAL_STRING_POOL_SIZE 5*1024*1024 // 5MB
 
 StringPool* create_string_pool(){
     StringPool* pool = (StringPool*)malloc(sizeof(StringPool));

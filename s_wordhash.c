@@ -383,9 +383,32 @@ int writeWordHashToFile(word_hash* hash, const char* filename) {
     }
     for (int i = 0; i < WORD_HASH_SIZE; i++) {
         word_node* current = hash->table[i];
+        fprintf(file, "-- Hash index %c:\n", i + 'a');
+        while (current) {
+            fprintf(file, "%s\n", current->word);
+            current = current->next;
+        }
+    }
+    fclose(file);
+    return 0;
+}
+
+// Write the word hash to file
+int writeWordHashToFile_Debug(word_hash* hash, const char* filename) {
+    if (!hash || !filename) {
+        fprintf(stderr, "Hash table or filename is NULL\n");
+        return -1;
+    }
+    FILE* file = fopen(filename, "w");
+    if (!file) {
+        fprintf(stderr, "Failed to open file: %s\n", filename);
+        return -1;
+    }
+    for (int i = 0; i < WORD_HASH_SIZE; i++) {
+        word_node* current = hash->table[i];
         fprintf(file, "Hash index %c:\n", i + 'a');
         while (current) {
-            fprintf(file, "     { %s , %d }\n", current->word, current->freq);
+            fprintf(file, "%s:%d\n", current->word, current->freq);
             current = current->next;
         }
     }
