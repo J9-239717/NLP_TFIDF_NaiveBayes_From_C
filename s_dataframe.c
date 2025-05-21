@@ -531,10 +531,10 @@ int is_token_in_array(char* token,char **array,int size){
         fprintf(stderr, "Invalid token or array\n");
         exit(EXIT_FAILURE);
     }
-    size_t min_len = 3;
+    size_t min_len = strlen(token);
     for(int i = 0; i < size; i++){
         size_t len = strlen(array[i]);
-        len = len < min_len ? min_len : len;
+        len = len < min_len ?  len : min_len;
         if(memcmp(token, array[i],len) == 0){
             return 1;
         }
