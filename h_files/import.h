@@ -12,7 +12,9 @@
 
 #define DEBUG 0
 #define ALPHA 1
+#ifndef max
 #define max(a,b) ((a) > (b) ? (a) : (b))
+#endif
 
 #define test(a,b) do{\
     if(a != b){\
