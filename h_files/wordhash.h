@@ -31,5 +31,6 @@ void reset_word_node_pool(word_node_pool* pool);
 void resetWordHash(word_hash* hash);
 char* getWordFromIndex(word_hash* hash, int index);
 word_hash* WordHashWithNgram_MultiThread(data_frame* df,int n);
+int writeWordHashToFile_Debug(word_hash* hash, const char* filename);
 
 #endif

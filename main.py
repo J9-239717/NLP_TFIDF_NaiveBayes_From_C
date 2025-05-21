@@ -18,6 +18,7 @@ WIN_PRED_TXT  = r"D:\TestC_AI\pythonRun\file\predict.txt"
 WIN_STOP_WORD = r"D:\TestC_AI\pythonRun\file\stopword.txt"
 WIN_NOISE     = r"NULL"
 WIN_MODEL     = r"D:\TestC_AI\pythonRun\model.exe"
+WIN_CM        = r"null"
 
 MODEL_NAME    = "SentimentNB"
 CLASS_NAMES   = ["negative", "neutral", "positive"]
@@ -35,6 +36,7 @@ def run_experiment(ngram: int):
         WIN_STOP_WORD,
         WIN_NOISE,
         str(ngram),
+        WIN_CM
     ]
     print(f"\n→ Running model with n-gram = {ngram}\n  ", " ".join(cmd))
     try:
