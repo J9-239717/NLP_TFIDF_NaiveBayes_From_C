@@ -78,8 +78,8 @@ void* get_noise(void* arg){
 }
 
 int main(int argc, char* argv[]){
-    if(argc != 7){
-        printf("Usage: %s <file-Train> <file-test-set> <file-real-test> <file-out-put-predict> <file-stop-word> <file-noise> \n",argv[0]);
+    if(argc != 8){
+        printf("Usage: %s <file-Train> <file-test-set> <file-real-test> <file-out-put-predict> <file-stop-word> <file-noise> <num-of-ngram> \n",argv[0]);
         return 1;
     }
     info_printf("create data frame and noise word\n");
@@ -90,6 +90,11 @@ int main(int argc, char* argv[]){
     char* fileout = argv[4];
     char* fileStopWord = argv[5];
     char* fileNoise = argv[6];
+    if(isdigit(argv[7][0]) == 0){
+        error_printf("The ngram must be a number\n");
+        return 1;
+    }
+    int ngram = atoi(argv[7]);
 
     // check noise word
     if(strstr(fileNoise,".txt") != NULL){
@@ -178,7 +183,6 @@ int main(int argc, char* argv[]){
     info_printf("TFIDF Train And Transform\n");
     start_timer();
     TF_IDF_OJ* tfidf_train = createTF_IDF(df_train);
-    int ngram = 2;
     info_printf("TFIDF ngram = %d\n",ngram);
     fit_tfidf(tfidf_train, ngram);
     TF_IDF_OJ* tfidf_test = transform(tfidf_train,df_test,ngram);
