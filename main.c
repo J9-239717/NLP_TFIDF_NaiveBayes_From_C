@@ -77,6 +77,145 @@ void* get_noise(void* arg){
     return NULL;
 }
 
+// Matrix
+//  -------- -------- --------  
+// |   TP   |   FP   |   FP   |
+//  -------- -------- --------
+// |   FN   |   TN   |   TN   |
+//  -------- -------- --------
+// |  FNE   |  FNE   |   TNE  |
+//  -------- -------- --------
+// P = positive
+// N = negative
+// NE = neutral
+// T = true
+// F = false
+enum { W_LABEL = 10, W_METRIC = 8, W_COUNT = 6 };
+void calculate_accuracy(char* file_real, char* file_predict){
+    FILE* f1 = fopen(file_real,"r");
+    FILE* f2 = fopen(file_predict,"r");
+    if(f1 == NULL || f2 == NULL){
+        fprintf(stderr, "Cannot open file %s or %s\n",file_real,file_predict);
+        return;
+    }
+    // matrix_ture_and_predict
+    int mtx[3][3] = {0};
+    size_t size1 = 0,size2 = 0;
+
+    fseek(f1, 0, SEEK_END);
+    size1 = ftell(f1);
+    fseek(f1, 0, SEEK_SET);
+
+    fseek(f2, 0, SEEK_END);
+    size2 = ftell(f2);
+    fseek(f2, 0, SEEK_SET);
+
+    if(size1 != size2){
+        fprintf(stderr, "The size of file %s and %s is not equal\n",file_real,file_predict);
+        fclose(f1);
+        fclose(f2);
+        return;
+    }
+
+    char* line1 = malloc(size1 + 1);
+    char* line2 = malloc(size2 + 1);
+    checkExistMemory(line1);
+    checkExistMemory(line2);
+
+    size_t bytes_read1 = fread(line1, 1, size1, f1);
+    size_t bytes_read2 = fread(line2, 1, size2, f2);
+
+    if (bytes_read1 != size1) {
+        error_printf("Error reading from file %s (read %zu/%zu bytes)\n", file_real, bytes_read1, size1);
+    }
+
+    if (bytes_read2 != size2) {
+        error_printf("Error reading from file %s (read %zu/%zu bytes)\n", file_predict, bytes_read2, size2);
+    }
+
+    fclose(f1);
+    fclose(f2);
+
+    line1[size1] = '\0';
+    line2[size2] = '\0';
+
+    int real = 0;
+    int predict = 0;
+    for(int i = 0; i < size1; i++){
+        if(line1[i] == ' ' || line2[i] == ' '){
+            continue;
+        }
+        real = line1[i] - '0';
+        predict = line2[i] - '0';
+        mtx[real][predict]++;
+    }
+    free(line1);
+    free(line2);
+
+    int Total = 0;
+    for (int i = 0; i < 3; i++)
+    {
+        for (int j = 0; j < 3; j++)
+        {
+            Total += mtx[i][j];
+        }
+    }
+    
+
+    char *label[] = {"negative", "neutral", "positive"};
+    int Row_Total[3] = {0};
+    int Column_Total[3] = {0};
+    for(int i = 0; i < 3; i++){
+        for(int j = 0; j < 3; j++){
+            if(i != j){
+                Row_Total[i] += mtx[i][j];
+                Column_Total[j] += mtx[i][j];
+            }
+        }
+    }
+    // overall accuracy
+    float accuracy_all = 
+        (mtx[0][0] + mtx[1][1] + mtx[2][2]) / (float)Total;
+    printf("Overall accuracy: %.2f%%\n\n", accuracy_all * 100);
+
+    // header
+    printf("%-*s | %*s | %*s | %*s | %*s | %*s\n",
+           W_LABEL, "Label",
+           W_METRIC+1, "Acc",
+           W_METRIC+1, "Prec",
+           W_METRIC+1, "Rec",
+           W_METRIC+1, "F1",
+           W_COUNT+3,  "Count");
+
+    // separator
+    printf("%.*s-+-%.*s-+-%.*s-+-%.*s-+-%.*s-+-%.*s\n",
+           W_LABEL,  "----------",
+           W_METRIC+1, "---------",
+           W_METRIC+1, "---------",
+           W_METRIC+1, "---------",
+           W_METRIC+1, "---------",
+           W_COUNT+3,  "-----------");
+
+    // rows
+    for(int i = 0; i < 3; i++){
+        float acc  = mtx[i][i] / (float)(mtx[i][i] + Row_Total[i] + Column_Total[i]);
+        float prec = mtx[i][i] / (float)(mtx[i][i] + Row_Total[i]);
+        float rec  = mtx[i][i] / (float)(mtx[i][i] + Column_Total[i]);
+        float f1   = 2 * (prec * rec) / (prec + rec);
+        int   cnt  = mtx[i][0] + mtx[i][1] + mtx[i][2];
+
+        printf("%-*s | %*.2f%% | %*.2f%% | %*.2f%% | %*.2f%% | %*d\n",
+               W_LABEL,  label[i],
+               W_METRIC, acc  * 100,
+               W_METRIC, prec * 100,
+               W_METRIC, rec  * 100,
+               W_METRIC, f1   * 100,
+               W_COUNT,  cnt);
+    }
+    printf("\n\n");
+    return;
+}
+
 int main(int argc, char* argv[]){
     if(argc != 9){
         printf("Usage: %s <file-Train> <file-test-set> <file-real-test> <file-out-put-predict> <file-stop-word> <file-noise> <num-of-ngram> <op>\n",argv[0]);
@@ -204,6 +343,10 @@ int main(int argc, char* argv[]){
     fitNB(nb, tfidf_train, df_train);
     predict(nb, tfidf_test,fileout);
     show_time();
+
+    // calculate accuracy
+    info_printf("Calculate Accuracy\n");
+    calculate_accuracy(filerealout, fileout);
 
     // make null for not double free
     tfidf_test->hash = NULL;
