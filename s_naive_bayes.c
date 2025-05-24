@@ -31,11 +31,6 @@ Naive_Bayes_OJ* createNaive_Bayes(data_frame* df, word_hash* hash) {
         }
 
         // Calculate prior probability P(C) = frequency of class C / total number of samples
-        if(DEBUG){
-            debug_printf("Class %d: Frequency: %d and Size is %d\n", class_index, label_freq->frequency, df->size);
-            debug_printf("If is float: %f\n", (float)label_freq->frequency /(float) df->size);
-            debug_printf("If is int: %d\n", label_freq->frequency / df->size);
-        }
         nb->prior[class_index] = (float)label_freq->frequency /(float) df->size;
 
         label_freq = label_freq->next;

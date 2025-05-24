@@ -44,6 +44,11 @@ sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram){
     int count_miss = 0;
     StringPool* str_pool = create_string_pool();
     word_node* node = NULL;
+    word_hash* word_miss;
+    if(DEBUG){
+        word_miss = createWordHash();
+        checkExistMemory(word_miss);
+    }
     for(int i = 0; i < N; i++){
         String_Ngram(temp,df->data[i].text, ngram, str_pool);
         checkExistMemory(temp);
@@ -56,6 +61,9 @@ sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram){
                 row = i;
                 if(col == -1){
                     count_miss++;
+                    if(DEBUG){
+                        push_word(word_miss, node->word);
+                    }
                     node = node->next;
                     continue;
                 }
@@ -71,6 +79,10 @@ sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram){
     destroy_string_pool(str_pool);
     freeWordHash(temp);
     info_printf("Count miss: %d\n", count_miss);
+    if(DEBUG){
+        writeWordHashToFile_Debug(word_miss, "assets/debug_hash_word_miss.txt");
+        freeWordHash(word_miss);
+    }
     return matrix;
 }
 
