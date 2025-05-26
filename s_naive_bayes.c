@@ -186,7 +186,7 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
                 error_printf("Index %d is out of bounds\n", index);
                 continue;
             }
-            // calculate P(fi|C) = ln( F(fi,C) / sigma F(all,C) )
+            // calculate P(fi|C) = ln( F(fi,C) + ALPHA / sigma F(all,C) + ALPHA * vocab_size )
             nb->likelihood[index] /= sum_class;
             nb->likelihood[index] = log(nb->likelihood[index]);
         }
