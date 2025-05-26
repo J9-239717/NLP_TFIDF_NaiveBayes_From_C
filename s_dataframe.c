@@ -170,10 +170,6 @@ int addLabelFrequency(data_frame* df, char* label){
     label_frequency* lf = df->label_freq;
     while(lf){
         if(memcmp(lf->label, label,strlen(label)) == 0){
-            if(DEBUG){
-                debug_printf("Label %s already exists\n", label);
-                debug_printf("Frequency: %d\n", lf->frequency +1);
-            }
             lf->frequency++;
             return 1;
         }

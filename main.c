@@ -199,8 +199,8 @@ void calculate_accuracy(char* file_real, char* file_predict){
     // rows
     for(int i = 0; i < 3; i++){
         float acc  = mtx[i][i] / (float)(mtx[i][i] + Row_Total[i] + Column_Total[i]);
-        float prec = mtx[i][i] / (float)(mtx[i][i] + Row_Total[i]);
-        float rec  = mtx[i][i] / (float)(mtx[i][i] + Column_Total[i]);
+        float prec = mtx[i][i] / (float)(mtx[i][i] + Column_Total[i]);
+        float rec  = mtx[i][i] / (float)(mtx[i][i] + Row_Total[i]);
         float f1   = 2 * (prec * rec) / (prec + rec);
         int   cnt  = mtx[i][0] + mtx[i][1] + mtx[i][2];
 

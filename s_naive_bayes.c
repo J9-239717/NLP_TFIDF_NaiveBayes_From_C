@@ -31,11 +31,6 @@ Naive_Bayes_OJ* createNaive_Bayes(data_frame* df, word_hash* hash) {
         }
 
         // Calculate prior probability P(C) = frequency of class C / total number of samples
-        if(DEBUG){
-            debug_printf("Class %d: Frequency: %d and Size is %d\n", class_index, label_freq->frequency, df->size);
-            debug_printf("If is float: %f\n", (float)label_freq->frequency /(float) df->size);
-            debug_printf("If is int: %d\n", label_freq->frequency / df->size);
-        }
         nb->prior[class_index] = (float)label_freq->frequency /(float) df->size;
 
         label_freq = label_freq->next;
@@ -191,7 +186,7 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
                 error_printf("Index %d is out of bounds\n", index);
                 continue;
             }
-            // calculate P(fi|C) = ln( F(fi,C) / sigma F(all,C) )
+            // calculate P(fi|C) = ln( F(fi,C) + ALPHA / sigma F(all,C) + ALPHA * vocab_size )
             nb->likelihood[index] /= sum_class;
             nb->likelihood[index] = log(nb->likelihood[index]);
         }
