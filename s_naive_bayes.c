@@ -9,7 +9,7 @@ Naive_Bayes_OJ* createNaive_Bayes(data_frame* df, word_hash* hash) {
     nb->likelihood = (float*)malloc(sizeof(float) * nb->num_classes * nb->vocab_size);
 
     for(int i = 0; i < nb->num_classes * nb->vocab_size; i++) {
-        nb->likelihood[i] = (float)ALPHA; // Initialize with 1.0f for Laplace smoothing
+        nb->likelihood[i] = 0;
     }
 
     checkExistMemory(nb->likelihood);
@@ -178,17 +178,15 @@ int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df) {
             // sigma F(all,C)
             sum_class += nb->likelihood[index];
         }
-        // sigma F(all,C) + ALPHA * vocab_size
-        sum_class += ALPHA * vocab_size; // Laplace smoothing
+
         for(int j = 0; j < vocab_size; j++){
             int index = index(row, j, vocab_size);
             if(index < 0 || index >= nb->num_classes * vocab_size){
                 error_printf("Index %d is out of bounds\n", index);
                 continue;
             }
-            // calculate P(fi|C) = ln( F(fi,C) + ALPHA / sigma F(all,C) + ALPHA * vocab_size )
-            nb->likelihood[index] /= sum_class;
-            nb->likelihood[index] = log(nb->likelihood[index]);
+            // calculate P(fi|C) = F(fi,C)/ sigma F(all,C)
+            nb->likelihood[index] /= sum_class;;
         }
         row++;
     }
@@ -206,7 +204,7 @@ void add_vector_to_matrix(float** matrix, int rows, int cols, float* vector, int
     }
     for(int i = 0; i < rows; i++) {
         for(int j = 0; j < cols; j++) {
-            matrix[i][j] += vector[j];
+            matrix[i][j] *= vector[j];
         }
     }
 }

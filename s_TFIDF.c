@@ -25,8 +25,8 @@ int compute_idf(TF_IDF_OJ* tfidf,int alpha){
     for(int i = 0; i < WORD_HASH_SIZE; i++){
         word_node* node = tfidf->hash->table[i];
         while(node){
-            float idf = ((float) (N + alpha) / (float) (node->freq + alpha));
-            tfidf->idf_vector[count++] = log(idf) + alpha;
+            float idf = ((float) (N) / (float) (node->freq));
+            tfidf->idf_vector[count++] = log(idf);
             node = node->next;
         }
     }
@@ -67,7 +67,7 @@ sparse_matrix* compute_tf(TF_IDF_OJ* tfidf,data_frame* df,int alpha,int ngram){
                     node = node->next;
                     continue;
                 }
-                value = (float) ((node->freq + alpha) / ((float)count_word + alpha));
+                value = (float) ((node->freq) / ((float)count_word));
                 add_entry(matrix, row, col, value);
                 node = node->next;
             }
