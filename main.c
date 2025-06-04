@@ -261,23 +261,16 @@ int main(int argc, char* argv[]){
     pthread_t thread1, thread2, thread3;
 
     // create thread to read data frame
-    thread_df *data_train,*data_test; 
+    thread_df *data_train;
     data_train = malloc(sizeof(thread_df));
-    data_test = malloc(sizeof(thread_df));
     checkExistMemory(data_train);
-    checkExistMemory(data_test);
     data_train->file_name = filetrian;
-    data_test->file_name = filetest;
-    data_train->stopword = data_test->stopword = fileStopWord;
-    data_train->df = data_test->df = NULL;
-    data_train->line = data_test->line = 0;
+    data_train->stopword = fileStopWord;
+    data_train->df = NULL;
+    data_train->line = 0;
 
     if(pthread_create(&thread1, NULL, init_data_frame, (void*)data_train) != 0){
         fprintf(stderr, "Error creating thread 1\n");
-        return 1;
-    }
-    if(pthread_create(&thread2, NULL, init_data_frame, (void*)data_test) != 0){
-        fprintf(stderr, "Error creating thread 2\n");
         return 1;
     }
 
@@ -308,10 +301,7 @@ int main(int argc, char* argv[]){
     show_time();
 
     data_frame* df_train = data_train->df;
-    data_frame* df_test = data_test->df;
-    write_test_pre_answer_to_file(df_test, filerealout);
     free(data_train);
-    free(data_test);
 
     if(fileNoise != NULL){
         // remove noise word in data frame
@@ -323,7 +313,6 @@ int main(int argc, char* argv[]){
         free(data_noise);
         freeWordHash(noise_hash);
         remove_word_in_data_frame(df_train, noise_word, size_noise);
-        remove_word_in_data_frame(df_test,noise_word,size_noise);
         freeArrayString(noise_word, size_noise);
         show_time();
     }
@@ -333,7 +322,6 @@ int main(int argc, char* argv[]){
     TF_IDF_OJ* tfidf_train = createTF_IDF(df_train);
     info_printf("TFIDF ngram = %d\n",ngram);
     fit_tfidf(tfidf_train, ngram);
-    TF_IDF_OJ* tfidf_test = transform(tfidf_train,df_test,ngram);
     show_time();
 
     // fit model and predict
@@ -341,23 +329,57 @@ int main(int argc, char* argv[]){
     start_timer();
     Naive_Bayes_OJ* nb = createNaive_Bayes(df_train, tfidf_train->hash);
     fitNB(nb, tfidf_train, df_train);
-    predict(nb, tfidf_test,fileout);
     show_time();
 
-    // calculate accuracy
-    info_printf("Calculate Accuracy\n");
-    calculate_accuracy(filerealout, fileout);
+    while(1){
+        char buffer_test[256];
+        data_frame* df_test = NULL;
+        TF_IDF_OJ* tfidf_test = NULL;
+        printf("Enter the test sentence : ");
+        fgets(buffer_test, sizeof(buffer_test), stdin);
+        buffer_test[strcspn(buffer_test, "\n")] = '\0';
+        if(buffer_test[0] == ':' && buffer_test[1] == 'q'){ 
+            break;
+        }
+        char headder[] = "text,label\n";
+        FILE* f = fopen("temp.csv", "w");
+        if(f == NULL){
+            fprintf(stderr, "Cannot open file temp.csv\n");
+            return 1;
+        }
+        fprintf(f, "%s", headder);
+        fprintf(f, "%s,-1", buffer_test);
+        fclose(f);
+        f = fopen("temp.csv", "r");
+        if(f == NULL){
+            fprintf(stderr, "Cannot open file temp.csv\n");
+            return 1;
+        }
+        int line_count = countLine("temp.csv");
+        df_test = createDataFrame();
+        readFiletoDataFrame(f, df_test, line_count, fileStopWord);
+        fclose(f);
+        tfidf_test = transform(tfidf_train, df_test, ngram);
+        predict(nb, tfidf_test, fileout, "null");
 
-    // make null for not double free
-    tfidf_test->hash = NULL;
-    tfidf_test->idf_vector = NULL;
+        // make null for not double free
+        tfidf_test->hash = NULL;
+        tfidf_test->idf_vector = NULL;
+        
+        // free reset
+        if(tfidf_test != NULL){
+            freeTF_IDF(tfidf_test);
+        }
+        if(df_test != NULL){
+            freeDataFrame(df_test);
+        }
+    
+    }
 
     // free memory
     info_printf("Clean Allocate\n");
     freeDataFrame(df_train);
-    freeDataFrame(df_test);
     freeTF_IDF(tfidf_train);
-    freeTF_IDF(tfidf_test);
     freeNaive_Bayes(nb);
     if(0){
         getNoise:

@@ -12,6 +12,6 @@ void freeNaive_Bayes(Naive_Bayes_OJ* nb);
 void printNaive_Bayes(Naive_Bayes_OJ* nb);
 int fitNB(Naive_Bayes_OJ* nb, TF_IDF_OJ* tf_idf, data_frame* df);
 int getlikelihood_to_file(Naive_Bayes_OJ* nb, const char* filename);
-int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf,char* file_predict);
+int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf,char* file_predict, char* file_predict_text);
 
 #endif

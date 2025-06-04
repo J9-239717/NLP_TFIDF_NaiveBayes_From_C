@@ -211,12 +211,13 @@ void add_vector_to_matrix(float** matrix, int rows, int cols, float* vector, int
     }
 }
 
-int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf,char* file_predict) {
+int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf,char* file_predict, char* file_predict_text) {
     FILE* file = fopen(file_predict, "w");
     if (!file) {
         error_printf("Cannot open file %s\n", file_predict);
         return -1;
     }
+    const char* predict[] = {"Negative", "Neutral", "Positive"};
     csr_matrix* test_mt = to_csr(tf_idf->tf_idf_matrix);
     csr_matrix* train_mt = flat_mt_to_csr(model->likelihood, model->num_classes, model->vocab_size);
     csr_matrix* train_mt_t = csr_transpose(train_mt);
@@ -235,7 +236,7 @@ int predict(Naive_Bayes_OJ* model, TF_IDF_OJ* tf_idf,char* file_predict) {
                 max_index = j;
             }
         }
-        fprintf(file,"%d ", max_index);
+        printf("\n\n\npredict is: %s\n\n", predict[max_index]);
     }
     free_dense_matrix(result, rows);
     free_csr_matrix(test_mt);
